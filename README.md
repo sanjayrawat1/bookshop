@@ -1,2 +1,10 @@
 # bookshop
 A Bookshop
+
+### Understanding the requirement
+
+Books will be available for sale through the application. When a customer purchases a book, they should be able to check on the status of their order. 
+Two categories of people will use the Polar Bookshop application:
+
+* Customers can browse books in the catalog, buy some, and check their orders.
+* Employees can manage books, update existing ones, and add new items to the catalog.
