@@ -1,0 +1,17 @@
+server:
+  port: 9001
+  tomcat:
+    # Defines a limit for how much time Tomcat should wait between accepting a TCP connection from a client and actually receiving the HTTP request
+    # It helps prevent denial-of-service attacks where a connection is established, Tomcat reserves a thread to handle the request, and the request never comes.
+    # The same timeout is used to limit the time spent reading the HTTP request body when there is one.
+    # The default value is 20s (20 seconds), which is probably too much for a standard cloud native application.
+    # In the context of highly distributed systems in the cloud, we probably don't want to wait more than a couple of seconds and risk a cascading failure
+    # due to a Tomcat instance hanging for too long.
+    connection-timeout: 2s # how long Tomcat will wait for a client request after client connected.
+    # Configure how long to keep a connection open while waiting for new HTTP requests.
+    # In other words, connectionTimeout is how long Tomcat will wait for the first HTTP request to be sent after TCP connection was established,
+    # keepAliveTimeout is how long it will wait for another request to be sent over the same connection
+    keep-alive-timeout: 15s # how long Tomcat will wait for another request before closing the connection
+    threads:
+      max: 50
+      min-spare: 5
