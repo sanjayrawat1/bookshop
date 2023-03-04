@@ -1,4 +1,4 @@
-### Catalog Service will be responsible for supporting the following use case: 
+### Catalog Service will be responsible for supporting the following use case:
 1. View the list of books in the catalog.
 2. Search books by their International Standard Book Number (ISBN).
 3. Add a new book to the catalog.
@@ -17,5 +17,3 @@
 | /books/{isbn} | PUT         | Book         | 200    | Book          | Update the book with the given ISBN.      |
 |               |             |              | 201    | Book          | Create a book with the given ISBN.        |
 | /books/{isbn} | DELETE      |              | 204    |               | Delete the book with the given ISBN.      |
-
-
