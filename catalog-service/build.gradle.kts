@@ -22,6 +22,10 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
+tasks.build {
+    dependsOn("spotlessApply")
+}
+
 spotless {
     java {
         importOrder()

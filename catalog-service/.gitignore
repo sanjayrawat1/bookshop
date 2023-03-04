@@ -50,3 +50,16 @@ Desktop.ini
 ######################
 .DS_Store
 .svn
+
+######################
+# Maven
+######################
+/log/
+/target/
+
+######################
+# Gradle
+######################
+.gradle/
+/build/
+.gradletasknamecache
