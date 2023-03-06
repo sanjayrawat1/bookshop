@@ -125,3 +125,34 @@ The Service object exposes the application to other components inside the cluste
 | 8080                    | the port of the Service     |
 
 Now open the browser and navigate to [http://localhost:8000/](http://localhost:8000/)
+
+
+
+### Deployment pipeline: Build and test
+
+Continuous delivery is a holistic approach for quickly, reliably and safely delivering high quality software.
+The primary pattern for adopting such an approach is deployment pipeline, which does from code commit to releasable software.
+It should be automated as much as possible, and it should represent the only path to production.
+
+Below are few key stages in a deployment pipeline:
+1. Commit stage
+2. Acceptance stage
+3. Production stage
+
+##### Commit Stage:
+After a developer commits new code to the mainline, this stage goes through build, unit tests, integration tests, static code analysis and packaging.
+At the end of this stage, an executable application artifact is published to an artifact repository. This stage supports the continuous integration practice.
+It's supposed to be fast, possible under five minutes, to provide developers with fast feedback about their changes and allow them to move on to the next task.
+
+##### Acceptance Stage:
+The publication of a new release candidate to the artifact repository triggers this stage, which consists of deploying the application to production
+like environments and running additional tests to increase the confidence about its release.
+Examples of tests included in this stage are functional acceptance and tests and non-functional acceptance tests, such as performance tests, security tests,
+and compliance tests. If necessary, this stage can also include manual tasks like exploratory and usability tests.
+At the end of this stage, the release candidate is ready to be deployed to production at any time. If we are still not confident about it,
+this stage is missing some test.
+
+##### Production Stage:
+After a release candidate has gone through the commit and acceptance stage, we are confident enough to deploy it to production.
+This stage is triggered manually or automatically depending on the organization practices.
+The new release candidate is deployed to a production environment using the same deployment scripts employed (and tested) in the acceptance stage.
