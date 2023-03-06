@@ -1,0 +1,30 @@
+name: Commit Stage
+on: [push]
+
+jobs:
+  build:
+    name: Build and Test ${{ matrix.project }}
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [
+          catalog-service,
+        ]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 19
+          cache: gradle
+      - name: Build, unit tests and integration tests
+        run: |
+          cd ${{ matrix.project }}
+          chmod +x gradlew
+          ./gradlew build
