@@ -16,6 +16,13 @@ server:
       max: 50
       min-spare: 5
 
+management:
+  endpoints:
+    web:
+      base-path: /management
+      exposure:
+        include: refresh
+
 spring:
   application:
     name: catalog-service
