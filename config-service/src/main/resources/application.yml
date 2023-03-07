@@ -1,1 +1,23 @@
+server:
+  port: 8888
+  tomcat:
+    connection-timeout: 2s
+    keep-alive-timeout: 15s
+    threads:
+      max: 50
+      min-spare: 5
 
+spring:
+  application:
+    name: config-service
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/sanjayrawat1/bookshop
+          # The server searches for config files in the top level and in `config-repo/` subdirectory.
+          # Every repository can also optionally store config files in subdirectories, and patterns to search for those directories can be specified as below:
+          search-paths:
+            - config-repo
+          # By default, the server will return the configuration data from the "main" branch.
+          default-label: main
