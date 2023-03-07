@@ -37,6 +37,10 @@ tasks.build {
     dependsOn("spotlessApply")
 }
 
+tasks.bootRun {
+    systemProperty("spring.profiles.active", "test-data")
+}
+
 spotless {
     java {
         toggleOffOn()
