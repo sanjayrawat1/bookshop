@@ -21,3 +21,15 @@ spring:
             - config-repo
           # By default, the server will return the configuration data from the "main" branch.
           default-label: main
+          # Time limit to establish a connection with the remote repository.
+          # Prevent the config server from waiting too long to establish a connection with the remote repository.
+          timeout: 5
+          # Clones the remote repository locally on startup. Even though it makes the startup phase a bit slower, it makes your deployment fail faster
+          # if there is any difficulty communicating with the remote repository, rather than waiting for the first request to find out that something is wrong.
+          # Also, it makes the first request from a client faster. The local copy of the repository improves the config server's fault tolerance because it
+          # ensures it can return configuration data to the client application even if the communication with the remote repository is temporarily failing.
+          # However, if the config server hasn't cloned the repository locally yet, there's no fallback in place. That's why it's better to fail fast at startup
+          # and investigate the issue right away.
+          clone-on-start: true
+          # Forces pulling the remote repository and discarding any local changes.
+          force-pull: true
