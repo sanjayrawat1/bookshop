@@ -2,14 +2,17 @@ package com.github.sanjayrawat1.bookshop.catalog;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.github.sanjayrawat1.bookshop.catalog.config.Constants;
 import com.github.sanjayrawat1.bookshop.catalog.domain.Book;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.ProblemDetail;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles(Constants.SPRING_PROFILE_INTEGRATION_TEST)
 class CatalogServiceApplicationTests {
 
     @Autowired

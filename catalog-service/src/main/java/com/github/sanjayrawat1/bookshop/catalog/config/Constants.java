@@ -10,4 +10,5 @@ public final class Constants {
     private Constants() {}
 
     public static final String SPRING_PROFILE_TEST_DATA = "test-data";
+    public static final String SPRING_PROFILE_INTEGRATION_TEST = "integration";
 }
