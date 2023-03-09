@@ -57,11 +57,6 @@ spring:
       connection-timeout: 2000
       # Maximum number of connections HikariCP will keep in the pool.
       maximum-pool-size: 5
-  # By default, Spring Data loads the schema.sql file when using an embedded, in-memory database. Since we're using PostgreSQL, we need to enable
-  # functionality explicitly.
-  sql:
-    init:
-      mode: always # Initialize the database schema from an SQL script.
 
 bookshop:
   greeting: Welcome to the local book catalog!

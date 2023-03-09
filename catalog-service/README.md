@@ -179,3 +179,27 @@ it is already listening to **RefreshScopeRefreshedEvent** by default, so you don
 the **BookshopProperties** bean will be reloaded with the latest configuration available.
 
 ![After changing the configuration in the Git repository backing the Config Service, a signal is sent to Catalog Service to refresh the parts of the application using the configuration.](https://github.com/sanjayrawat1/bookshop/blob/main/catalog-service/hot-reload-config-data.drawio.svg "Refreshing configuration at runtime")
+
+### Running a PostgreSQL Database
+Run PostgreSQL as a Docker container
+`docker run -d --name bookshop-postgres -e POSTGRES_USER=user -e POSTGRES_PASSWORD=password -e POSTGRES_DB=catalog -p 5432:5432 postgres:14.2`
+
+### Container commands
+
+| Docker command                  | Description      |
+|---------------------------------|------------------|
+| docker stop bookshop-postgres   | Stop container.  |
+| docker start bookshop-postgres  | Start container. |
+| docker remove bookshop-postgres | Remove container |
+
+### Database commands
+Start an interactive PSQL console:
+`docker exec -it bookshop-postgres psql -U user -d catalog`
+
+| PSQL command     | Description                                  |
+|------------------|----------------------------------------------|
+| \list            | List all databases.                          |
+| \connect catalog | Connect to specific database (e.g. catalog). |
+| \dt              | List all tables.                             |
+| \d book          | Show the `book` table schema.                |
+| \quit            | Quit interactive PSQL console                |
