@@ -156,3 +156,26 @@ this stage is missing some test.
 After a release candidate has gone through the commit and acceptance stage, we are confident enough to deploy it to production.
 This stage is triggered manually or automatically depending on the organization practices.
 The new release candidate is deployed to a production environment using the same deployment scripts employed (and tested) in the acceptance stage.
+
+### Using a configuration server with Spring Cloud Config Client.
+A Spring Boot application can be configured through a config server using the Spring Cloud Config Client library.
+
+#### Refreshing configuration at runtime
+
+What happens when new changes are pushed to the Git repository that's backing the Config Service? For a standard Spring Boot application,
+you would have to restart it when you change a property (either in properties file or an environment variable).
+However, Spring Cloud Config gives the possibility to refresh configuration in client applications at runtime. Whenever a new changes pushed to the
+configuration repository, you can signal all the application integrated with the config server, and they will reload parts affected by the configuration change.
+
+After committing and pushing the new configuration changes to the remote Git repository, you can send a POST request to a client application through a specific
+endpoint that will trigger a **RefreshScopeRefreshedEvent** inside the application context. You can rely on the Spring Boot Actuator project to expose
+the refresh endpoint by adding Actuator dependency.
+
+The Spring Boot Actuator library configures an /management/refresh endpoint that triggers a refresh event. By default, the endpoint is not exposed,
+so you have to enable it explicitly in the application.yml
+The refresh event, **RefreshScopeRefreshedEvent**, will have no effect if there is no component listening. You can use the **@RefreshScope** annotation on
+any bean you’d like to be reloaded whenever a refresh is triggered. Since you defined your custom properties through a **@ConfigurationProperties** bean,
+it is already listening to **RefreshScopeRefreshedEvent** by default, so you don’t need to make any changes to your code. When a refresh is triggered,
+the **BookshopProperties** bean will be reloaded with the latest configuration available.
+
+![After changing the configuration in the Git repository backing the Config Service, a signal is sent to Catalog Service to refresh the parts of the application using the configuration.](https://github.com/sanjayrawat1/bookshop/blob/main/catalog-service/hot-reload-config-data.drawio.svg "Refreshing configuration at runtime")
