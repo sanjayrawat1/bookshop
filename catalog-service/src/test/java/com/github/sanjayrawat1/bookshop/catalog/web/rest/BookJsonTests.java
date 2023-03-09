@@ -3,6 +3,7 @@ package com.github.sanjayrawat1.bookshop.catalog.web.rest;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.github.sanjayrawat1.bookshop.catalog.domain.Book;
+import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.json.JsonTest;
@@ -32,7 +33,8 @@ public class BookJsonTests {
 
     @Test
     void testSerialization() throws Exception {
-        var book = new Book(123L, "1234567890", "Title", "Author", 9.90, 2);
+        var now = Instant.now();
+        var book = new Book(123L, "1234567890", "Title", "Author", 9.90, now, now, 2);
         // Verifying the parsing from Java to JSON, using the JsonPath format to navigate the JSON object.
         var jsonContent = json.write(book);
         assertThat(jsonContent).extractingJsonPathNumberValue("@.id").isEqualTo(book.id().intValue());
@@ -40,11 +42,14 @@ public class BookJsonTests {
         assertThat(jsonContent).extractingJsonPathStringValue("@.title").isEqualTo(book.title());
         assertThat(jsonContent).extractingJsonPathStringValue("@.author").isEqualTo(book.author());
         assertThat(jsonContent).extractingJsonPathNumberValue("@.price").isEqualTo(book.price());
+        assertThat(jsonContent).extractingJsonPathStringValue("@.createdDate").isEqualTo(book.createdDate().toString());
+        assertThat(jsonContent).extractingJsonPathStringValue("@.lastModifiedDate").isEqualTo(book.lastModifiedDate().toString());
         assertThat(jsonContent).extractingJsonPathNumberValue("@.version").isEqualTo(book.version());
     }
 
     @Test
     void testDeserialization() throws Exception {
+        var instant = Instant.parse("2023-03-09T18:05:37.135029Z");
         var content =
             """
                 {
@@ -53,9 +58,11 @@ public class BookJsonTests {
                     "title": "Title",
                     "author": "Author",
                     "price": 9.90,
+                    "createdDate": "2023-03-09T18:05:37.135029Z",
+                    "lastModifiedDate": "2023-03-09T18:05:37.135029Z",
                     "version": 2
                 }
                 """;
-        assertThat(json.parse(content)).usingRecursiveComparison().isEqualTo(new Book(123L, "1234567890", "Title", "Author", 9.90, 2));
+        assertThat(json.parse(content)).usingRecursiveComparison().isEqualTo(new Book(123L, "1234567890", "Title", "Author", 9.90, instant, instant, 2));
     }
 }
