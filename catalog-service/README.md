@@ -203,3 +203,60 @@ Start an interactive PSQL console:
 | \dt              | List all tables.                             |
 | \d book          | Show the `book` table schema.                |
 | \quit            | Quit interactive PSQL console                |
+
+### Working with container images on Docker
+
+The Docker Engine has a client/server architecture. The Docker CLI is the client you use to interact with the Docker Server.
+The latter is responsible for managing all Docker resources (i.e., images, containers, and networks) through the docker daemon.
+The server can also interact with container registry to upload and download images.
+
+##### Container Images
+Container images are lightweight executable packages that include everything needed to run the application that's inside.
+Container images are the product of executing an ordered sequence of instructions, each resulting in a layer. Each image is made up of several layers,
+and each layer represents a modification produced by the corresponding instruction. The final artifact, an image, can be run as a container.
+Images can be created from scratch or starting from a base image.
+
+Container images are composed of an ordered sequence of read-only layers. The first one represents the base image, the others represent modification
+applied on top of it. Once read-only layers are applied, you can't modify them anymore. If you need to change something, you can do so by applying a new layer
+on top of it. Changes applied to the upper layers will not affect the lower ones. This approach is call _copy-on-write_
+Running containers have an extra layer on top of the image layers. That is the only writable layer, but remember that it’s volatile.
+
+#### Creating images with Dockerfiles
+Create a Dockerfile with instructions, and navigate where Dockerfile is located and run following command
+
+`$ docker build -t my-image:1.0.0 .`
+
+You can check the details of newly created image using the `docker images` command.
+
+A container image can be run with the `docker run` command, which starts a container and executes the process described in the Dockerfile as the entry point:
+
+`$ docker run --rm my-java-image:1.0.0`
+
+#### Publishing images to GitHub container registry
+A container registry is to images what a Maven repository is to Java libraries. By default, a Docker installation is configured to use the container registry
+provided by the Docker company (Docker Hub), which hosts images for many popular open source projects, like PostgreSQL, RabbitMQ, and Redis.
+We’ll keep using it to pull images for third parties. For this project I chose to rely on the GitHub Container Registry.
+
+Create a Personal Access Token (PAT) granting write access to the GitHub Container Registry, authenticate with GitHub container registry using below command
+when asked insert username and password (PAT).
+
+`$ docker login ghcr.io`
+
+Container images follow common naming conventions, which are adopted by OCI-compliant container registries:
+
+`<container_registry>/<namespace>/<name>[:<tag>]`
+1. container_registry: The hostname for the container registry. When using GitHub Container Registry, the hostname is ghcr.io and must be explicit.
+2. namespace: The namespace will be your Docker/GitHub username written all in lowercase.
+3. name and tag: The image name represents the repository (or package) that contains all the versions of your image.
+It’s optionally followed by a tag for selecting a specific version. If no tag is defined, the latest tag will be used by default.
+
+Since you already built an image with name my-image:1.0.0, now you have to assign it a fully qualified name before publishing it to a container registry.
+You can do so with the docker tag command:
+
+`$ docker tag my-image:1.0.0 ghcr.io/<your-github-username>/my-image:1.0.0`
+
+Then you can finally push it to GitHub container registry:
+
+`$ docker push ghcr.io/<your-github-username>/my-image:1.0.0`
+
+Go to your GitHub account, navigate to your profile page, and enter the Packages section. You should see a new my-image entry.
