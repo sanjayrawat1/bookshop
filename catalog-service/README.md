@@ -182,7 +182,8 @@ the **BookshopProperties** bean will be reloaded with the latest configuration a
 
 ### Running a PostgreSQL Database
 Run PostgreSQL as a Docker container
-`docker run -d --name bookshop-postgres -e POSTGRES_USER=user -e POSTGRES_PASSWORD=password -e POSTGRES_DB=catalog -p 5432:5432 postgres:14.2`
+
+`$ docker run -d --name bookshop-postgres -e POSTGRES_USER=user -e POSTGRES_PASSWORD=password -e POSTGRES_DB=catalog -p 5432:5432 postgres:14.2`
 
 ### Container commands
 
@@ -194,7 +195,7 @@ Run PostgreSQL as a Docker container
 
 ### Database commands
 Start an interactive PSQL console:
-`docker exec -it bookshop-postgres psql -U user -d catalog`
+`$ docker exec -it bookshop-postgres psql -U user -d catalog`
 
 | PSQL command     | Description                                  |
 |------------------|----------------------------------------------|
@@ -260,3 +261,46 @@ Then you can finally push it to GitHub container registry:
 `$ docker push ghcr.io/<your-github-username>/my-image:1.0.0`
 
 Go to your GitHub account, navigate to your profile page, and enter the Packages section. You should see a new my-image entry.
+
+### Packaging Spring Boot application as container images
+Packaging a Spring Boot application as a container image means that the application will run in an isolated context, including computational resources
+and network. Two main questions may arise from this isolation:
+1. How can you reach the application through the network?
+2. How can you make it interact with other containers?
+
+By default, containers join an isolated network inside the Docker host. If you want to access any container from your local network, you must explicitly
+configure the port mapping. For example, when you ran the Catalog Service application, you specified the mapping as an argument to the docker run command:
+-p 8080:8080 (where the first is the external port and the second is the container port).
+
+Docker has a built-in DNS server that can enable containers in the same network to find each other using the container name rather than a hostname or
+an IP address. For example, Catalog Service will be able to call the PostgreSQL server through the URL jdbc:postgresql://bookshop-postgres:5432,
+where bookshop-postgres is the container name.
+
+The Catalog Service container can directly interact with the PostgreSQL container because they are both on the same Docker network.
+
+Let’s create a network inside which Catalog Service and PostgreSQL can talk to each other using the container name instead of an IP address or a hostname.
+
+`$ docker network create catalog-network`
+
+Verify that the network has been successfully created:
+
+`$ docker network ls`
+
+Now start PostgreSQL container, specifying that it should be part of catalog-network. Using the **--net** argument ensures the container will join the
+specified network and rely on the Docker built-in DNS server:
+
+`$ docker run -d --name bookshop-postgres --net catalog-network -e POSTGRES_USER=user -e POSTGRES_PASSWORD=password -e POSTGRES_DB=catalog
+-p 5432:5432 postgres:14.2`
+
+Now first build the JAR artifacts:
+
+`$ ./gradlew clean bootJar`
+
+Build the container image:
+
+`$ docker build -t catalog-service .`
+
+Run the Docker container image using port forwarding to 9001 and using the Docker build-in DNS server to connect to the catalog-network:
+
+`$ docker run --name catalog-service --net catalog-network -p 9001:9001 -e SPRING_DATASOURCE_URL=jdbc:postgresql://bookshop-postgres:5432/catalog
+-e SPRING_PROFILES_ACTIVE=test-data catalog-service`
