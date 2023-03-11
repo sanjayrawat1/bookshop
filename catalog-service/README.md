@@ -351,3 +351,15 @@ Also, remember to pass values for the container registry via the Gradle properti
 Once the command completes successfully, go to your GitHub account, navigate to your profile page, and enter the Packages section. You should see a new
 catalog-service entry (by default, packages hosting container images are private). If you click on the catalog-service entry,
 you'll find the **ghcr.io/<your_github_username>/catalog-service:latest** image you just published.
+
+### Managing Spring Boot containers with Docker Compose
+
+Finally, you can remove the network you used to make catalog service communicate with postgres. You won't need it anymore, as you will use docker-compose to
+manage the container life cycle. If you don't add any network configuration, docker compose will automatically create one for you and make all the containers
+in the file join it. That means they can interact with each other through their container names, relying on docker's built-in DNS server.
+
+`$ docker network rm catalog-network`
+
+It’s good practice to gather all deployment-related scripts in a separate codebase and, possibly, in a separate repository.
+We will use **bookshop-deployment** repository on GitHub. It'll contain all the Docker and Kubernetes scripts needed to run the application composing the
+bookshop system.
