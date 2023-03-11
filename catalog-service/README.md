@@ -304,3 +304,15 @@ Run the Docker container image using port forwarding to 9001 and using the Docke
 
 `$ docker run --name catalog-service --net catalog-network -p 9001:9001 -e SPRING_DATASOURCE_URL=jdbc:postgresql://bookshop-postgres:5432/catalog
 -e SPRING_PROFILES_ACTIVE=test-data catalog-service`
+
+#### Secure Dockerfile
+You should be aware that containers run using the root user by default, potentially letting them get root access to the Docker host.
+You can mitigate the risk by creating a non-privileged user and using it to run the entry-point process defined in the Dockerfile,
+following the principle of the least privilege. You can improve it by adding new steps to create a new non-root user that will run the application.
+creates a "spring" user
+
+`RUN useradd spring`
+
+configures "spring" as the current user
+
+`USER spring`
