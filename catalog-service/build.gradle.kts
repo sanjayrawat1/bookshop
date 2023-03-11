@@ -59,6 +59,11 @@ tasks.bootRun {
     systemProperty("spring.profiles.active", "test-data")
 }
 
+tasks.bootBuildImage {
+    imageName.set(project.name)
+    environment.set(environment.get() + mapOf("BP_JVM_VERSION" to "19"))
+}
+
 spotless {
     java {
         toggleOffOn()

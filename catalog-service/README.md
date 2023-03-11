@@ -289,8 +289,7 @@ Verify that the network has been successfully created:
 Now start PostgreSQL container, specifying that it should be part of catalog-network. Using the **--net** argument ensures the container will join the
 specified network and rely on the Docker built-in DNS server:
 
-`$ docker run -d --name bookshop-postgres --net catalog-network -e POSTGRES_USER=user -e POSTGRES_PASSWORD=password -e POSTGRES_DB=catalog
--p 5432:5432 postgres:14.2`
+`$ docker run -d --name bookshop-postgres --net catalog-network -e POSTGRES_USER=user -e POSTGRES_PASSWORD=password -e POSTGRES_DB=catalog -p 5432:5432 postgres:14.2`
 
 Now first build the JAR artifacts:
 
@@ -302,8 +301,7 @@ Build the container image:
 
 Run the Docker container image using port forwarding to 9001 and using the Docker build-in DNS server to connect to the catalog-network:
 
-`$ docker run --name catalog-service --net catalog-network -p 9001:9001 -e SPRING_DATASOURCE_URL=jdbc:postgresql://bookshop-postgres:5432/catalog
--e SPRING_PROFILES_ACTIVE=test-data catalog-service`
+`$ docker run -d --name catalog-service --net catalog-network -p 9001:9001 -e SPRING_DATASOURCE_URL=jdbc:postgresql://bookshop-postgres:5432/catalog -e SPRING_PROFILES_ACTIVE=test-data catalog-service`
 
 #### Secure Dockerfile
 You should be aware that containers run using the root user by default, potentially letting them get root access to the Docker host.
@@ -316,3 +314,27 @@ creates a "spring" user
 configures "spring" as the current user
 
 `USER spring`
+
+### Dockerfiles or Buildpacks
+Dockerfiles are very powerful, and they give you complete fine-grained control over the result. However, they require extra care and maintenance and can
+lead to several challenges in your value stream.
+Cloud Native Buildpacks provide a different approach, focusing on consistency, security, performance and governance. As a developer, you get a tool that
+automatically builds a production-ready OCI image from your application source code without having to write a Dockerfile.
+
+#### Containerizing Spring Boot with Cloud Native Buildpacks
+Cloud Native Buildpacks (https://buildpacks.io) is a project hosted by the CNCF to transform your application source code into images that can run on any cloud.
+It’s a mature project, and since Spring Boot 2.3, it has been integrated natively in the Spring Boot Plugin for both Gradle and Maven,
+so you’re not required to install the dedicated Buildpacks CLI (pack).
+
+These are some of its feature:
+1. It auto-detects the type of application and packages it without requiring a Dockerfile.
+2. It supports multiple languages and platforms.
+3. It’s highly performant through caching and layering.
+4. It guarantees reproducible builds.
+5. It relies on best practices in terms of security.
+6. It produces production-grade images.
+7. It supports building native images using GraalVM.
+
+Build image using buildpacks by running below commands:
+
+`$ ./gradle bootBuildImage`
