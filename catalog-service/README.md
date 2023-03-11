@@ -338,3 +338,16 @@ These are some of its feature:
 Build image using buildpacks by running below commands:
 
 `$ ./gradle bootBuildImage`
+
+You can also configure the Spring Boot plugin to publish the image directly to a container registry. To do so, you first need to add configuration for
+authenticating with the specific container registry in the build.gradle file.
+
+Finally, you can build and publish the image by running the bootBuildImage task. With the --imageName argument, you can define a fully qualified image name
+as container registries require. With the --publishImage argument, you can instruct the Spring Boot plugin to push the image to the container registry directly.
+Also, remember to pass values for the container registry via the Gradle properties:
+
+`$ ./gradlew bootBuildImage --imageName ghcr.io/<your_github_username>/catalog-service --publishImage -PregistryUrl=ghcr.io -PregistryUsername=<your_github_username> -PregistryToken=<your_github_token>`
+
+Once the command completes successfully, go to your GitHub account, navigate to your profile page, and enter the Packages section. You should see a new
+catalog-service entry (by default, packages hosting container images are private). If you click on the catalog-service entry,
+you'll find the **ghcr.io/<your_github_username>/catalog-service:latest** image you just published.
