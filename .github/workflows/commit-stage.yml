@@ -14,6 +14,9 @@ jobs:
         project: [
           catalog-service,
         ]
+    defaults:
+      run:
+        working-directory: ${{ matrix.project }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -37,6 +40,5 @@ jobs:
           sarif_file: "${{ steps.scan.outputs.sarif }}" # fetches the report from the output of the previous step
       - name: Build, unit tests and integration tests
         run: |
-          cd ${{ matrix.project }}
           chmod +x gradlew
           ./gradlew build
