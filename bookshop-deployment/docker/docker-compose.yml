@@ -1,5 +1,8 @@
 version: "3.8"
 services:
+
+  # Applications
+
   catalog-service:
     depends_on:
       - bookshop-postgres
@@ -18,6 +21,22 @@ services:
       - BPL_DEBUG_PORT=8001
       - SPRING_DATASOURCE_URL=jdbc:postgresql://bookshop-postgres:5432/catalog
       - SPRING_PROFILES_ACTIVE=test-data
+
+  config-service:
+    image: "config-service"
+    container_name: "config-service"
+    ports:
+      - "8888:8888"
+      # The port where the JVM will listen for debug connections.
+      - "9888:9888"
+    environment:
+      # Buildpacks environment variable to configure the number of threads in memory calculation.
+      - BPL_JVM_THREAD_COUNT=50
+      # Buildpacks environment variable to enable debug through a socket on port 9888.
+      - BPL_DEBUG_ENABLED=true
+      - BPL_DEBUG_PORT=9888
+
+  # Backing Services
 
   bookshop-postgres:
     image: "postgres:14.2"
