@@ -7,9 +7,15 @@ services:
     container_name: "catalog-service"
     ports:
       - "9001:9001"
+      # The port where the JVM will listen for debug connections
+      - "8001:8001"
     environment:
-      #A Paketo Buildpacks environment variable to configure the number of threads for memory calculation.
+      # A Paketo Buildpacks environment variable to configure the number of threads for memory calculation.
       - BPL_JVM_THREAD_COUNT=50
+      # Activate the JVM configuration for accepting debug connections provided by Buildpacks..
+      - BPL_DEBUG_ENABLED=true
+      # Debug connections are accepted via a socket on port 8001 provided by Buildpacks.
+      - BPL_DEBUG_PORT=8001
       - SPRING_DATASOURCE_URL=jdbc:postgresql://bookshop-postgres:5432/catalog
       - SPRING_PROFILES_ACTIVE=test-data
 
