@@ -38,7 +38,7 @@ jobs:
           sarif_file: ${{ steps.scan.outputs.sarif }} # fetches the report from the output of the previous step
       - name: Build, unit tests and integration tests
         run: |
-          chmod -x gradlew
+          chmod +x gradlew
           ./gradlew build
   # The job’s unique identifier - package
   package:
@@ -63,7 +63,7 @@ jobs:
           cache: gradle
       - name: Build container image
         run: |
-          chmod -x gradlew
+          chmod +x gradlew
           ./gradlew bootBuildImage \
           --imageName ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
       - name: OCI image vulnerability scanning
