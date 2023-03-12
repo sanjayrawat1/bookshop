@@ -363,3 +363,8 @@ in the file join it. That means they can interact with each other through their 
 It’s good practice to gather all deployment-related scripts in a separate codebase and, possibly, in a separate repository.
 We will use **bookshop-deployment** repository on GitHub. It'll contain all the Docker and Kubernetes scripts needed to run the application composing the
 bookshop system.
+
+
+### Configure IDE to run in debug mode
+
+![](https://github.com/sanjayrawat1/bookshop/blob/main/catalog-service/config-to-debug-containerized-java-app-from-intellij-idea.png "Configuration to debug a containerized Java application from IntelliJ IDEA")
