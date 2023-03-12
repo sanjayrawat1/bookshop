@@ -368,3 +368,12 @@ bookshop system.
 ### Configure IDE to run in debug mode
 
 ![](https://github.com/sanjayrawat1/bookshop/blob/main/catalog-service/config-to-debug-containerized-java-app-from-intellij-idea.png "Configuration to debug a containerized Java application from IntelliJ IDEA")
+
+### Deployment Pipeline: Package and publish
+
+![](https://github.com/sanjayrawat1/bookshop/blob/main/catalog-service/deployment-pipeline-package-and-publish-commit-stage.drawio.svg)
+
+Once a release candidate is published, several parties can download it and use it, including the next stages in the deployment pipeline.
+How can we ensure that all interested parties use a legitimate container image from the Bookshop project, and not one that has been compromised?
+We can achieve that by signing the image. After the publishing step, we could add a new step for signing the release candidate. For example, we could use
+Sigstore (www.sigstore.dev), a non-profit service that provides open source tools for signing, verifying, and protecting software integrity.

@@ -1,6 +1,12 @@
 name: Commit Stage
 on: push
 
+env:
+  REGISTRY: ghcr.io
+  # IMAGE_NAME: <your_github_username>/catalog-service
+  IMAGE_NAME: sanjayrawat1/catalog-service
+  VERSION: latest
+
 jobs:
   # The job’s unique identifier - build
   build:
@@ -29,8 +35,59 @@ jobs:
         uses: github/codeql-action/upload-sarif@v2 # upload the security vulnerability report to GitHub (SARIF format)
         if: success() || failure() # upload the report even if the previous step fails
         with:
-          sarif_file: "${{ steps.scan.outputs.sarif }}" # fetches the report from the output of the previous step
+          sarif_file: ${{ steps.scan.outputs.sarif }} # fetches the report from the output of the previous step
       - name: Build, unit tests and integration tests
         run: |
           chmod -x gradlew
           ./gradlew build
+  # The job’s unique identifier - package
+  package:
+    name: Package and Publish
+    # Runs the job only on the main branch.
+    if: ${{ github.ref == 'refs/heads/main' }}
+    # Runs the job only if the "build" job completes successfully.
+    needs: [ build ]
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      packages: write
+      security-events: write
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+      - name: Setup JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 19
+          cache: gradle
+      - name: Build container image
+        run: |
+          chmod -x gradlew
+          ./gradlew bootBuildImage \
+          --imageName ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
+      - name: OCI image vulnerability scanning
+        uses: anchore/scan-action@v3
+        id: scan
+        with:
+          image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
+          fail-build: false
+          severity-cutoff: high
+      - name: Upload vulnerability report
+        uses: github/codeql-action/upload-sarif@v2
+        if: success() || failure()
+        with:
+          sarif_file: ${{ steps.scan.outputs.sarif }}
+      # Authenticates with GitHub Container Registry.
+      - name: Log into container registry
+        uses: docker/login-action@v2
+        with:
+          # The registry value as defined in the environment variable.
+          registry: ${{ env.REGISTRY }}
+          # The GitHub username of the current user, provided by GitHub Actions.
+          username: ${{ github.actor }}
+          # The token needed to authenticate with the registry, provided by GitHub Actions.
+          password: ${{ secrets.GITHUB_TOKEN }}
+      # Pushes the release candidate to the registry.
+      - name: Publish container image
+        run: docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
