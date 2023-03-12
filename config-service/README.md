@@ -32,3 +32,9 @@ Spring Cloud Config Server exposes properties through a series of endpoints usin
 You won’t need to call these endpoints from your application when using Spring Cloud Config Client (it does that for you), but it’s useful to know
 how the server exposes configuration data. A configuration server built with Spring Cloud Config Server exposes a standard REST API that any application can
 access over a network. You can use the same server for applications built with other languages and frameworks and use the REST API directly.
+
+#### Containerizing Spring Boot with Cloud Native Buildpacks
+To transform application source code into image and to publish the image directly to a container registry we will use spring boot plugin.
+Build and publish the image by running below commands:
+
+`$ ./gradlew bootBuildImage --imageName ghcr.io/<your_github_username>/config-service --publishImage -PregistryUrl=ghcr.io -PregistryUsername=<your_github_username> -PregistryToken=<your_github_token>`
