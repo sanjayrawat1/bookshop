@@ -475,3 +475,82 @@ To get the more information about the pod, you can use below command:
 `$ kubectl get pods`
 
 `$ kubectl describe pod <pod_name>`
+
+### Service discovery and load balancing
+Catalog service application running as a Pod in you local k8s cluster, but there are still unanswered question:
+1. How can it interact with the PostgreSQL pod running in the cluster?
+2. How does it know where to find it?
+3. How can you expose a spring boot application to be used by other Pods in the cluster?
+4. How can you expose it outside the cluster?
+
+Two important aspects of cloud native systems that answer the above questions:
+1. Service Discovery
+2. Load Balancing
+
+Two main patterns are available to implement them while working with spring applications:
+1. Client Side
+2. Server Side
+
+The server-side approach of service discovery and load balancing is natively offered by Kubernetes through Service objects, meaning you don't have to change
+anything in your code to support it unlike the client-side option.
+
+When you have multiple instances of a service running, each service instance will have its own IP address. A service instance will not live longer in the cloud.
+Using IP addresses for interprocess communication in the cloud is not an option. DNS record can be one solution, but there's a high chance of using a
+hostname/IP address resolution that is no longer valid.
+
+Service discovery in cloud environment requires a different solution. First we need to keep track of all the service instances running and store that
+information in a **service registry**. Whenever a new instance is created, an entry should be added to the registry. When it's shut down, it should be removed
+accordingly.
+The registry recognizes that multiple instances of the same applications can be up and running. When an application needs to call a backing service, it performs
+a lookup in the registry to determine which IP address to connect. If multiple instances are available, a **load-balancing** strategy is applied to distribute
+the workload across them.
+
+#### Client side service discovery and load balancing
+
+A drawback is that client service discovery assigns more responsibility to developers. If your system includes applications built using different languages and
+frameworks, you’ll need to handle the client part of each of them in different ways.
+
+![](https://github.com/sanjayrawat1/bookshop/blob/main/catalog-service/client-side-service-discovery-and-load-balancing.drawio.svg)
+
+#### Server side service discovery and load balancing
+
+Server-side service discovery solutions move a lot of responsibility to the deployment platform, so that developers can focus on the business logic and rely on
+the platform to provide all the necessary functionality for service discovery and load balancing.
+Such solutions automatically register and deregister application instances and rely on a load-balancer component to route any incoming requests to one of the
+available instances according to a specific strategy. In this case, the application doesn't need to interact with the service registry, which is updated and
+managed by the platform.
+
+![](https://github.com/sanjayrawat1/bookshop/blob/main/catalog-service/server-side-service-discovery-and-load-balancing.drawio.svg)
+
+The k8s implementation of this service discovery pattern is base on **Service** objects. A service is an abstract way to expose an application running on a set
+of Pods as a Network service.
+
+The IP address assigned to a Service is fixed for its lifetime. Therefore, the DNS resolution of a Service name doesn't change as often as it would with
+application instances.
+
+After resolving the Service name to its IP address, Kubernetes relies on a proxy (called kube-proxy), which intercepts the connection to the Service object and
+forwards the request to one of the Pods targeted by the Service. The proxy knows all the replicas available and adopts a load-balancing strategy depending on
+the type of Service and the proxy configuration. There is no DNS resolution involved in this step.
+
+![](https://github.com/sanjayrawat1/bookshop/blob/main/catalog-service/server-side-service-discovery-and-load-balancing-with-k8s.drawio.svg)
+
+In Kubernetes, the interprocess communication between Alpha App and Beta App happens through a Service object. Any request arriving at the Service is
+intercepted by a proxy that forwards it to one of the replicas targeted by the Service based on a specific load-balancing strategy.
+
+#### Exposing Spring boot applications with Kubernetes Services
+
+##### Creating the Service object from the manifest
+
+Apply the Service manifest
+
+`$ kubectl apply -f k8s/service.yml`
+
+Verify the result:
+
+`$ kubectl get svc -l app=catalog-service`
+
+Expose the application outside the cluster. For now, we will rely on the port-forwarding feature offered by k8s to expose an object to a local machine.
+
+`$ kubectl port-forward service/catalog-service 9001:80`
+
+![](https://github.com/sanjayrawat1/bookshop/blob/main/catalog-service/expose-spring-boot-app-with-k8s-service.drawio.svg)
