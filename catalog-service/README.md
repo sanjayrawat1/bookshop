@@ -439,3 +439,39 @@ Commands to start, stop and delete k8s cluster:
 `$ kubectl start --profile bookshop`
 
 `$ kubectl delete --profile bookshop`
+
+#### Creating a Deployment for a Spring Boot application
+In Kubernetes, the recommended approach is to describe an object’s desired state in a manifest file, typically specified in YAML format.
+
+In a production scenario, the image would be fetched from a container registry. During development, it’s more convenient to work with local images.
+Let’s build one for Catalog Service, and build a new container image as follows:
+
+`$ ./gradlew bootBuildImage`
+
+By default, minikube doesn't have access to your local container images, so it will not find the image you have just built for Catalog Service.
+You can manually import it into your local cluster:
+
+`$ minikube image load catalog-service --profile bookshop`
+
+##### Creating a deployment object from manifest
+Apply k8s manifest to a cluster using kubectl client, navigate to catalog-service root folder and run below command:
+
+`$ kubectl apply -f k8s/deployment.yml`
+
+The above command is processed by the k8s control plane, which will create and maintain all the related objects in the cluster. You can verify which objects
+have been created with the below command:
+
+`$ kubectl get all -l app=catalog-service`
+
+Since you used labels consistently in your Deployment manifest, you can use the label to fetch all the k8s objects related to the catalog service deployment.
+The declaration in deployment.yml resulted in the creation of a Deployment, a ReplicaSet and a Pod.
+
+To check the catalog service logs from its deployment, run below command:
+
+`$ kubectl logs deployment/catalog-service`
+
+To get the more information about the pod, you can use below command:
+
+`$ kubectl get pods`
+
+`$ kubectl describe pod <pod_name>`

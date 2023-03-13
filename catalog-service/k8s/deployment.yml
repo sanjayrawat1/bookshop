@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalog-service
+  labels:
+    app: catalog-service
+spec:
+  # defines the labels used to select the Pods to be scaled.
+  selector:
+    matchLabels:
+      app: catalog-service
+  # the template for creating a Pod.
+  template:
+    metadata:
+      # labels attached to the Pod object. they should match the ones used as selectors.
+      labels:
+        app: catalog-service
+    spec:
+      # the list of containers in the Pod (one in this case)
+      containers:
+        # the name of the pod
+        - name: catalog-service
+          # the image used to run the container. no tag is defined, so "latest" will be used implicitly.
+          image: catalog-service
+          # instruct k8s to pull the image from a container registry only if it's not present locally yet.
+          imagePullPolicy: IfNotPresent
+          ports:
+            # the ports exposed by the container
+            - containerPort: 9001
+          # the list of environment variables passed to the Pod.
+          env:
+            - name: BPL_JVM_THREAD_COUNT
+              value: "50"
+            - name: SPRING_DATASOURCE_URL
+              # the hostname part of the URL is the name of the Service object that was used to expose the database.
+              value: jdbc:postgresql://bookshop-postgres/catalog
+            - name: SPRING_PROFILES_ACTIVE
+              value: test-data
+
