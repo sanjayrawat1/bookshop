@@ -45,7 +45,7 @@ jobs:
           ./gradlew build
   # The job’s unique identifier - package
   package:
-    name: Package and Publish
+    name: Package and Publish ${{ matrix.project }}
     # Runs the job only on the main branch.
     if: ${{ github.ref == 'refs/heads/main' }}
     # Runs the job only if the "build" job completes successfully.
@@ -60,6 +60,7 @@ jobs:
       matrix:
         project: [
           catalog-service,
+          config-service,
         ]
     defaults:
       run:
