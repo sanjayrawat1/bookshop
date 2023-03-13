@@ -377,3 +377,65 @@ Once a release candidate is published, several parties can download it and use i
 How can we ensure that all interested parties use a legitimate container image from the Bookshop project, and not one that has been compromised?
 We can achieve that by signing the image. After the publishing step, we could add a new step for signing the release candidate. For example, we could use
 Sigstore (www.sigstore.dev), a non-profit service that provides open source tools for signing, verifying, and protecting software integrity.
+
+## Moving from Docker to Kubernetes
+With docker compose, you can manage the deployment of several containers at once, including the configuration of networks and storage. Tha is extremely
+powerful, but it's limited to one machine.
+
+Using Docker CLI and Docker Compose, the interaction happens with a single Docker Daemon that manages docker resources on a single machine, called the docker
+host. Furthermore, it's not possible to scale a container. All of this is limiting when you need cloud native properties like scalability and resilience
+for your system.
+
+Docker clients interact with a Docker daemon that can only manage resources on the machine where it is installed, called the Docker host.
+Applications are deployed as containers to the Docker host.
+
+![](https://github.com/sanjayrawat1/bookshop/blob/main/catalog-service/application-container-management-in-docker.drawio.svg)
+
+Kubernetes' clients interact with the Control Plane, which manages containerized applications in a cluster consisting of one or more nodes.
+Applications are deployed as Pods to the nodes of a cluster.
+
+![](https://github.com/sanjayrawat1/bookshop/blob/main/catalog-service/application-container-management-in-kubernetes.drawio.svg)
+
+With Docker, we deploy containers to an individual machine. With Kubernetes, we deploy containers to a cluster of machines, enabling scalability and resilience.
+
+##### Main component of k8s infrastructure:
+* **Cluster**: A set of nodes running containerized applications. It hosts the Control Plane and comprises one or more worker nodes.
+* **Control Plane**: The cluster component exposing the API and interfaces to define, deploy and manage the life cycle of Pods. It provides features like
+orchestration, cluster management, scheduling, scaling, self-healing and health monitoring.
+* **Worker Nodes**: Physical or virtual machines providing capacity such as CPU, memory, network and storage so that containers can run and connect to a network.
+* **Pods**: The smallest deployable unit wrapping an application container.
+
+#### Working with local k8s cluster
+We will use `minikube` CLI to create clusters on local environment. We will run minikube on top of Docker, remember to start the Docker Engine first.
+We will not use the default cluster, instead, we will create a new custom one for working with Bookshop. With minikube you can create and control multiple
+clusters identified via **profiles**.
+
+Let's create a new k8s cluster named _bookshop_ on top of docker by running below command:
+
+`$ minikube start --cpus 2 --memory 4g --driver docker --profile bookshop`
+
+Get list of all the nodes in the cluster:
+
+`$ kubectl get nodes`
+
+The cluster we have just created is composed of single node, which hosts the Control Plane and acts as a worker node for deploying containerized workloads.
+
+List all the available contexts with which you can interact (local or remote):
+
+`$ kubectl config get-contexts`
+
+Verify which is the current context:
+
+`$ kubectl config current-context`
+
+Change current context by running below command:
+
+`$ kubectl config use-context bookshop`
+
+Commands to start, stop and delete k8s cluster:
+
+`$ kubectl stop --profile bookshop`
+
+`$ kubectl start --profile bookshop`
+
+`$ kubectl delete --profile bookshop`
