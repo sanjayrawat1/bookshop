@@ -18,3 +18,26 @@ debug port outside the container so that your IDE can reach it.
 After adding remote config in docker-compose file go to the location of docker-compose.yml file and run the following command:
 
 `$ docker-compose up -d`
+
+### Managing data services in a local cluster
+Data services are the stateful components of a system and require special care in a cloud environment due to the challenges of handling their storage. 
+Managing persistence and storage in Kubernetes is a complex topic, and it’s not usually the responsibility of developers.
+When you deploy the Bookshop system in production, you’ll rely on the managed data services offered by the cloud provider.
+For local k8s cluster, I have prepared the configuration for deploying PostgreSQL, under [services](kubernetes%2Fplatform%2Fdevelopment%2Fservices) folder.
+
+Navigate to the [development](kubernetes%2Fplatform%2Fdevelopment) folder and run following command to deploy PostgreSQL in local cluster:
+
+`$ kubectl apply -f services`
+
+The above command creates the resources defined in the manifests within the services' folder. The result will be a Pod running a PostgreSQL container in local
+k8s cluster. Run below command to check it out:
+
+`$ kubectl get pod`
+
+To check the database logs run below command:
+
+`$ kubectl logs deployment/bookshop-postgres`
+
+To undeploy the database, you can run the below command from the same folder:
+
+`$ kubectl delete -f services`
