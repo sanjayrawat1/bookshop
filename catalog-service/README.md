@@ -593,3 +593,42 @@ catalog-service folder where you have defined the k8s manifests and delete all t
 Go to the bookshop-deployment repo, and navigate to the kubernetes/platform/development folder, and delete the PostgreSQL installation:
 
 `$ kubectl delete -f services`
+
+
+#### Local k8s development with Tilt
+Setup local k8s development workflow to automate steps like building images and applying manifests to a k8s cluster. It's part of implementing
+the **inner development loop** of working with a k8s platform.
+
+Tilt (https://tilt.dev) is an open source tool that offers features for building, deploying and managing containerized workloads in you local environment.
+
+Design a workflow that will automate the following steps:
+1. Package a spring boot application as a container image using cloud native buildpacks.
+2. Upload the image to a k8s cluster.
+3. Apply all the k8s objects declared in the YAML manifest.
+4. Enable the port-forwarding functionality.
+5. Gives you easy access to the logs from the application running on the cluster.
+
+Before running tilt, make sure postgres instance is up and running in local k8s cluster. Navigate to bookshop-deployment/kubernetes/platform/development, run:
+
+`$ kubectl apply -f services`
+
+Tilt can be configured via a _**Tiltfile**_. Create a file named "Tiltfile" in the root folder. The file will contain three main configuration:
+1. How to build a container image.
+2. How to deploy the application.
+3. How to access the application.
+
+The Tiltfile configures Tilt to use the same approach we used previously for building, loading, deploying, and publishing applications on the local k8s cluster.
+The main difference? It’s all automated now! After configuring Tiltfile, run below command to start Tilt and follow-on screen instructions:
+
+`$ tilt up`
+
+Tilt will keep the application in sync with the source code. Whenever you make any change to the application, Tilt will trigger an update operation to build
+and deploy a new container image. All of that happens automatically and continuously.
+
+Verify the application is running:
+
+`$ http :9001/books`
+
+Stop the tilt process and undeploy the application by running following command:
+
+`$ tilt down`
