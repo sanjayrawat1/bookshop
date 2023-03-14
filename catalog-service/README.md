@@ -178,7 +178,7 @@ any bean you’d like to be reloaded whenever a refresh is triggered. Since you 
 it is already listening to **RefreshScopeRefreshedEvent** by default, so you don’t need to make any changes to your code. When a refresh is triggered,
 the **BookshopProperties** bean will be reloaded with the latest configuration available.
 
-![After changing the configuration in the Git repository backing the Config Service, a signal is sent to Catalog Service to refresh the parts of the application using the configuration.](https://github.com/sanjayrawat1/bookshop/blob/main/catalog-service/hot-reload-config-data.drawio.svg "Refreshing configuration at runtime")
+![After changing the configuration in the Git repository backing the Config Service, a signal is sent to Catalog Service to refresh the parts of the application using the configuration.](https://github.com/sanjayrawat1/bookshop/blob/main/catalog-service/diagrams/hot-reload-config-data.drawio.svg "Refreshing configuration at runtime")
 
 ### Running a PostgreSQL Database
 Run PostgreSQL as a Docker container
@@ -367,11 +367,11 @@ bookshop system.
 
 ### Configure IDE to run in debug mode
 
-![](https://github.com/sanjayrawat1/bookshop/blob/main/catalog-service/config-to-debug-containerized-java-app-from-intellij-idea.png "Configuration to debug a containerized Java application from IntelliJ IDEA")
+![](https://github.com/sanjayrawat1/bookshop/blob/main/catalog-service/diagrams/config-to-debug-containerized-java-app-from-intellij-idea.png "Configuration to debug a containerized Java application from IntelliJ IDEA")
 
 ### Deployment Pipeline: Package and publish
 
-![](https://github.com/sanjayrawat1/bookshop/blob/main/catalog-service/deployment-pipeline-package-and-publish-commit-stage.drawio.svg)
+![](https://github.com/sanjayrawat1/bookshop/blob/main/catalog-service/diagrams/deployment-pipeline-package-and-publish-commit-stage.drawio.svg)
 
 Once a release candidate is published, several parties can download it and use it, including the next stages in the deployment pipeline.
 How can we ensure that all interested parties use a legitimate container image from the Bookshop project, and not one that has been compromised?
@@ -389,12 +389,12 @@ for your system.
 Docker clients interact with a Docker daemon that can only manage resources on the machine where it is installed, called the Docker host.
 Applications are deployed as containers to the Docker host.
 
-![](https://github.com/sanjayrawat1/bookshop/blob/main/catalog-service/application-container-management-in-docker.drawio.svg)
+![](https://github.com/sanjayrawat1/bookshop/blob/main/catalog-service/diagrams/application-container-management-in-docker.drawio.svg)
 
 Kubernetes' clients interact with the Control Plane, which manages containerized applications in a cluster consisting of one or more nodes.
 Applications are deployed as Pods to the nodes of a cluster.
 
-![](https://github.com/sanjayrawat1/bookshop/blob/main/catalog-service/application-container-management-in-kubernetes.drawio.svg)
+![](https://github.com/sanjayrawat1/bookshop/blob/main/catalog-service/diagrams/application-container-management-in-kubernetes.drawio.svg)
 
 With Docker, we deploy containers to an individual machine. With Kubernetes, we deploy containers to a cluster of machines, enabling scalability and resilience.
 
@@ -510,7 +510,7 @@ the workload across them.
 A drawback is that client service discovery assigns more responsibility to developers. If your system includes applications built using different languages and
 frameworks, you’ll need to handle the client part of each of them in different ways.
 
-![](https://github.com/sanjayrawat1/bookshop/blob/main/catalog-service/client-side-service-discovery-and-load-balancing.drawio.svg)
+![](https://github.com/sanjayrawat1/bookshop/blob/main/catalog-service/diagrams/client-side-service-discovery-and-load-balancing.drawio.svg)
 
 #### Server side service discovery and load balancing
 
@@ -520,7 +520,7 @@ Such solutions automatically register and deregister application instances and r
 available instances according to a specific strategy. In this case, the application doesn't need to interact with the service registry, which is updated and
 managed by the platform.
 
-![](https://github.com/sanjayrawat1/bookshop/blob/main/catalog-service/server-side-service-discovery-and-load-balancing.drawio.svg)
+![](https://github.com/sanjayrawat1/bookshop/blob/main/catalog-service/diagrams/server-side-service-discovery-and-load-balancing.drawio.svg)
 
 The k8s implementation of this service discovery pattern is base on **Service** objects. A service is an abstract way to expose an application running on a set
 of Pods as a Network service.
@@ -532,7 +532,7 @@ After resolving the Service name to its IP address, Kubernetes relies on a proxy
 forwards the request to one of the Pods targeted by the Service. The proxy knows all the replicas available and adopts a load-balancing strategy depending on
 the type of Service and the proxy configuration. There is no DNS resolution involved in this step.
 
-![](https://github.com/sanjayrawat1/bookshop/blob/main/catalog-service/server-side-service-discovery-and-load-balancing-with-k8s.drawio.svg)
+![](https://github.com/sanjayrawat1/bookshop/blob/main/catalog-service/diagrams/server-side-service-discovery-and-load-balancing-with-k8s.drawio.svg)
 
 In Kubernetes, the interprocess communication between Alpha App and Beta App happens through a Service object. Any request arriving at the Service is
 intercepted by a proxy that forwards it to one of the replicas targeted by the Service based on a specific load-balancing strategy.
@@ -553,7 +553,7 @@ Expose the application outside the cluster. For now, we will rely on the port-fo
 
 `$ kubectl port-forward service/catalog-service 9001:80`
 
-![](https://github.com/sanjayrawat1/bookshop/blob/main/catalog-service/expose-spring-boot-app-with-k8s-service.drawio.svg)
+![](https://github.com/sanjayrawat1/bookshop/blob/main/catalog-service/diagrams/expose-spring-boot-app-with-k8s-service.drawio.svg)
 
 #### Disposability: Fast Startup and Graceful Shutdown
 Fast startup is relevant in a cloud environment because applications are disposable and are frequently created, destroyed, and scaled. The quicker the startup,
