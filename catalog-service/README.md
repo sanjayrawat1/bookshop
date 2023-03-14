@@ -584,3 +584,12 @@ Update number of replica count in deployment.yml and apply new changes to k8s:
 Verify the result:
 
 `$ kubectl get pods -l app=catalog-service`
+
+Before moving change number of replicas back to one and clean up your cluster by removing all the resources you have created so far. Navigate to the
+catalog-service folder where you have defined the k8s manifests and delete all the objects created for catalog service.
+
+`$ kubectl delete -f k8s`
+
+Go to the bookshop-deployment repo, and navigate to the kubernetes/platform/development folder, and delete the PostgreSQL installation:
+
+`$ kubectl delete -f services`
