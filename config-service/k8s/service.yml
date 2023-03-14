@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  # the name of the Service, it must be a valid DNS name.
+  name: config-service
+  labels:
+    # a label attached to the Service.
+    app: config-service
+spec:
+  # the type of Service.
+  type: ClusterIP
+  selector:
+    # the label used to match the Pods to target and expose.
+    app: config-service
+  ports:
+    - protocol: TCP
+      # the port exposed by the Service.
+      port: 80
+      # the port exposed by the Pods targeted by the Service.
+      targetPort: 8888
