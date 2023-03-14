@@ -632,3 +632,19 @@ Verify the application is running:
 Stop the tilt process and undeploy the application by running following command:
 
 `$ tilt down`
+
+#### Visualizing your Kubernetes workloads with Octant
+When you start deploying multiple applications to a Kubernetes cluster, it can become challenging to manage all the related Kubernetes objects or investigate
+failures when they happen. There are different solutions for visualizing and managing Kubernetes workloads.
+We will cover Octant (https://octant.dev), an open source developer-centric web interface for Kubernetes that lets you inspect a Kubernetes cluster
+and its applications.
+
+Deploy application to local k8s cluster by running `$ tilt up` command. Then run `$ octant`. This command will open the Octant Dashboard in browser.
+
+Octant offers a web interface for inspecting a Kubernetes cluster and its workloads.
+Octant lets you access Pod information easily, check their logs, and enable a port forward.
+
+When you are done stop the Octant by stopping its process with Ctrl-C. Then stop the Tilt process and run `$ tilt down` to undeploy the application.
+Delete postgres installation with `$ kubectl delete -f services`. Finally, stop the cluster as follows:
+
+`$ minikube stop --profile bookshop`
