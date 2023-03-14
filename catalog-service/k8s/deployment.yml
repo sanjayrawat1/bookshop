@@ -38,6 +38,8 @@ spec:
           env:
             - name: BPL_JVM_THREAD_COUNT
               value: "50"
+            - name: SPRING_CLOUD_CONFIG_URI
+              value: http://config-service
             - name: SPRING_DATASOURCE_URL
               # the hostname part of the URL is the name of the Service object that was used to expose the database.
               value: jdbc:postgresql://bookshop-postgres/catalog
