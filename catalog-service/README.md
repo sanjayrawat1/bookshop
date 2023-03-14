@@ -652,3 +652,15 @@ When you are done stop the Octant by stopping its process with Ctrl-C. Then stop
 Delete postgres installation with `$ kubectl delete -f services`. Finally, stop the cluster as follows:
 
 `$ minikube stop --profile bookshop`
+
+#### Deployment Pipeline: Validate Kubernetes Manifest
+Since manifest specifies the desired state of an object, we should ensure that our specification complies with the API exposed by Kubernetes.
+It’s a good idea to automate this validation in the commit stage of a deployment pipeline to get fast feedback in case of errors rather than waiting until
+the acceptance stage, where we need to use those manifests to deploy the application in a Kubernetes cluster.
+There are several ways of validating k8s manifests against the k8s API. We will use Kubeval (https://www.kubeval.com), an open source tool.
+
+To validate the k8s manifest within the k8s directory (-d k8s) use below command in local environment from the root folder of catalog service:
+
+`$ kubeval --strict -d k8s`
+
+The --strict flag disallows adding additional properties not defined in the object schema.
