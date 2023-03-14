@@ -633,6 +633,10 @@ Stop the tilt process and undeploy the application by running following command:
 
 `$ tilt down`
 
+Rebuilding the whole container image every time you change something in your code is not very efficient. You can configure Tilt to synchronize only the changed
+files and upload them into the current image. To achieve that, you can rely on the features offered by Spring Boot DevTools (https://mng.bz/nY8v) and Paketo
+Buildpacks (https://mng.bz/vo5x).
+
 #### Visualizing your Kubernetes workloads with Octant
 When you start deploying multiple applications to a Kubernetes cluster, it can become challenging to manage all the related Kubernetes objects or investigate
 failures when they happen. There are different solutions for visualizing and managing Kubernetes workloads.
