@@ -1,5 +1,6 @@
 server:
   port: 9001
+  shutdown: graceful
   tomcat:
     # Defines a limit for how much time Tomcat should wait between accepting a TCP connection from a client and actually receiving the HTTP request
     # It helps prevent denial-of-service attacks where a connection is established, Tomcat reserves a thread to handle the request, and the request never comes.
@@ -26,6 +27,8 @@ management:
 spring:
   application:
     name: catalog-service
+  lifecycle:
+    timeout-per-shutdown-phase: 15s
   config:
     # Imports configuration data from a config server when available.
     import: "optional:configserver:"

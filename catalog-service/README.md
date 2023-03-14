@@ -554,3 +554,22 @@ Expose the application outside the cluster. For now, we will rely on the port-fo
 `$ kubectl port-forward service/catalog-service 9001:80`
 
 ![](https://github.com/sanjayrawat1/bookshop/blob/main/catalog-service/expose-spring-boot-app-with-k8s-service.drawio.svg)
+
+#### Disposability: Fast Startup and Graceful Shutdown
+Fast startup is relevant in a cloud environment because applications are disposable and are frequently created, destroyed, and scaled. The quicker the startup,
+the sooner a new application instance is ready to accept connections.
+
+Having applications start quickly is not enough to address our scalability needs. Whenever an application instance is shut down, it must happen gracefully
+without clients experiencing downtime or errors. Gracefully shutting down means the application stops accepting new requests, completes all those still in
+progress, and closes any open resources, like database connections.
+
+By default, Spring Boot stops the server immediately after receiving a termination signal (SIGTERM). You can switch to a graceful mode by configuring the
+`server.shutdown` property.
+
+After enabling application support for graceful shutdown, you also need to update Deployment manifest accordingly. Kubernetes sends SIGTERM signal to the Pod
+when it has to be terminated, and also informs its own components to stop forwarding request to the terminating Pod.
+You need to configure a delay in k8s to send the SIGTERM signal to the Pod so that k8s has enough time to spread the news across the cluster. By doing so, all
+k8s component will already know not to send new requests to the Pod when it starts graceful shutdown.
+
+When a Pod contains multiple containers, the SIGTERM signal is sent to all of them in parallel. Kubernetes will wait up to 30 seconds. If any of the
+containers in the Pod are not terminated yet, it will shut them down forcefully.
