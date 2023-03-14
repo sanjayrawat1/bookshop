@@ -664,3 +664,28 @@ To validate the k8s manifest within the k8s directory (-d k8s) use below command
 `$ kubeval --strict -d k8s`
 
 The --strict flag disallows adding additional properties not defined in the object schema.
+
+#### Summary
+* Docker works fine when running single-instance containers on a single machine. When your system needs properties like scalability and resilience,
+you can use Kubernetes.
+* Kubernetes provides all the features for scaling containers across a cluster of machines, ensuring resilience both when a container fails and when a
+machine goes down.
+* Pods are the smallest deployable units in Kubernetes.
+* Rather than creating Pods directly, you can use a Deployment object to declare the desired state for your applications, and Kubernetes will ensure it matches
+the actual state. That includes having the desired number of replicas up and running at any time.
+* The cloud is a dynamic environment, and the topology keeps changing. Service discovery and load balancing let you dynamically establish interactions between
+services, managed either on the client side (for example, using Spring Cloud Netflix Eureka) or on the server side (for example, using Kubernetes).
+* Kubernetes provides a native service-discovery and load-balancing feature that you can use through the Service objects.
+* Each Service name can be used as a DNS name. Kubernetes will resolve the name to the Service IP address and, ultimately, forward the request to one of
+the instances available.
+* You can deploy Spring Boot applications to a Kubernetes cluster by defining two YAML manifests: one for the Deployment object and one for the Service object.
+* The kubectl client lets you create objects from a file with the command `$ kubectl apply -f <your-file.yml>`.
+* Cloud native applications should be disposable (fast startup and graceful shutdown) and stateless (rely on data services for storing the state).
+* Graceful shutdown is supported both by Spring Boot and Kubernetes and is an essential aspect of scalable applications.
+* Kubernetes uses ReplicaSet controllers to replicate your application Pods and keep them running.
+* Tilt is a tool that automates your local development workflow with Kubernetes: you work on the application while Tilt takes care of building the image,
+deploying it to your local Kubernetes cluster, and keeping it up-to-date whenever you change something in the code.
+* You can start Tilt for your project with `$ tilt up`.
+* The Octant dashboard lets you visualize your Kubernetes workloads.
+* Octant is a convenient tool that you can use not only for inspecting and troubleshooting a local Kubernetes cluster but also for a remote one.
+* Kubeval is a convenient tool you can use to validate Kubernetes manifests. It’s particularly useful when it’s included in your deployment pipeline.
