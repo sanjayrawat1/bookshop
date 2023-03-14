@@ -573,3 +573,14 @@ k8s component will already know not to send new requests to the Pod when it star
 
 When a Pod contains multiple containers, the SIGTERM signal is sent to all of them in parallel. Kubernetes will wait up to 30 seconds. If any of the
 containers in the Pod are not terminated yet, it will shut them down forcefully.
+
+#### Scaling app
+In k8s, replication is handled at Pod level by a ReplicaSet object. Deployment objects are already configured to use ReplicaSet, all you need to specify the
+number of replicas to be deployed. The replication is controlled using labels defined in the manifest (app=catalog-service).
+Update number of replica count in deployment.yml and apply new changes to k8s:
+
+`$ kubectl apply -f k8s/deployment.yml`
+
+Verify the result:
+
+`$ kubectl get pods -l app=catalog-service`

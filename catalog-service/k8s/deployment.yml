@@ -5,6 +5,8 @@ metadata:
   labels:
     app: catalog-service
 spec:
+  # how many pod replicas should be deployed.
+  replicas: 1
   # defines the labels used to select the Pods to be scaled.
   selector:
     matchLabels:
