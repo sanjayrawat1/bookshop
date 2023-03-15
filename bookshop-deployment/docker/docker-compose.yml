@@ -47,4 +47,7 @@ services:
     environment:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=catalog
+      # No value is defined for POSTGRES_DB anymore.
+    volumes:
+      # Mounts the initialization SQL script to the container as a volume.
+      - ./postgresql/init.sql:/docker-entrypoint-initdb.d/init.sql
