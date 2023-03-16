@@ -12,3 +12,12 @@ spring:
     name: order-service
   lifecycle:
     timeout-per-shutdown-phase: 15s
+  r2dbc:
+    username: user
+    password: password
+    url: r2dbc:postgresql://localhost:5432/bookshop_order
+    pool:
+      # the maximum time to wait to get a connection from the pool
+      max-create-connection-time: 2s
+      initial-size: 5
+      max-size: 10
