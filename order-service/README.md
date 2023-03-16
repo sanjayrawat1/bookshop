@@ -38,3 +38,32 @@ timeouts, retries, and fail-overs using the Reactor operators timeout(), retryWh
 When an order is submitted, Order Service calls Catalog Service over HTTP to check the book's availability and fetch its details.
 
 ![](https://github.com/sanjayrawat1/bookshop/blob/main/order-service/diagrams/order-service-interaction-with-catalog-service.drawio.svg)
+
+#### Resilient applications with Reactive Spring
+
+Resilience is about keeping a system available and delivering its service, even when failures happen. It's critical to design fault-tolerant applications.
+The goal is to keep the system available without the user noticing any failures. In the worst-case scenario, the system may have degraded functionality
+(graceful degradation), but it should still be available.
+The critical point in achieving resilience (or fault-tolerance) is keeping the faulty component isolated until the fault is fixed. By doing that you will
+prevent _crack propagation_.
+
+##### Timeouts
+Whenever your application calls a remote service, you don't know if and when a response will be received. Timeouts (also called _time limiters_) are for
+preserving the responsiveness of your application in case a response is not received within a reasonable time period.
+
+Two main reasons for setting up timeouts:
+1. If you don't limit the time your client waits, you risk your computational resources being blocked for too long (for imperative applications).
+In the worst-case scenario, your application will be completely unresponsive because all the available threads are blocked, waiting for responses from a
+remote service, and there are no threads available to handle new requests.
+2. If you can't meet Service Level Agreement (SLAs) there is no reason to keep waiting for an answer. It's better to fail the request.
+
+![](https://github.com/sanjayrawat1/bookshop/blob/main/order-service/diagrams/request-response-interaction-when-timeouts-and-failovers-defined.drawio.svg)
+
+When a response is received from the remote service within the time limit, the request is successful. If the timeout expires and no response is received,
+then a fallback behavior is executed, if any. Otherwise, an exception is thrown.
+
+Timeouts improve application resilience and follow the principle of failing fast. But setting a good value for the timeout can be tricky. You should consider
+your system architecture as a whole. You should carefully design a time-limiting strategy for all the integration points in your system to meet your software’s
+SLAs and guarantee a good user experience.
+If Catalog Service were available, but a response couldn't get to Order Service within the time limit, the request would likely still be processed by Catalog
+Service. That is a critical point to consider when configuring timeouts.
