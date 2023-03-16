@@ -24,3 +24,9 @@ the available threads will execute the callback. During that time, the thread th
 
 ![](https://github.com/sanjayrawat1/bookshop/blob/main/order-service/diagrams/event-loop-model.drawio.svg "In the event loop model, requests are handled by
 threads that don’t block while waiting for an intensive operation, allowing them to process other requests in the meantime.")
+
+##### Managing database schemas with flyway
+Flyway doesn't support R2DBC yet: https://github.com/flyway/flyway/issues/2502, so we need to provide a JDBC driver to communicate with the database. The flyway migration tasks are only run at application
+startup and in a single thread, so using a non-reactive communication for this one case doesn't impact the overall application's scalability and efficiency.
+
+Finally, in the application.yml file, configure Flyway to use the same database managed with Spring Data R2DBC but using the JDBC driver.
