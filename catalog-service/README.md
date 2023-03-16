@@ -183,7 +183,7 @@ the **BookshopProperties** bean will be reloaded with the latest configuration a
 ### Running a PostgreSQL Database
 Run PostgreSQL as a Docker container
 
-`$ docker run -d --name bookshop-postgres -e POSTGRES_USER=user -e POSTGRES_PASSWORD=password -e POSTGRES_DB=catalog -p 5432:5432 postgres:14.2`
+`$ docker run -d --name bookshop-postgres -e POSTGRES_USER=user -e POSTGRES_PASSWORD=password -e POSTGRES_DB=bookshop_catalog -p 5432:5432 postgres:14.2`
 
 ### Container commands
 
@@ -195,15 +195,15 @@ Run PostgreSQL as a Docker container
 
 ### Database commands
 Start an interactive PSQL console:
-`$ docker exec -it bookshop-postgres psql -U user -d catalog`
+`$ docker exec -it bookshop-postgres psql -U user -d bookshop_catalog`
 
-| PSQL command     | Description                                  |
-|------------------|----------------------------------------------|
-| \list            | List all databases.                          |
-| \connect catalog | Connect to specific database (e.g. catalog). |
-| \dt              | List all tables.                             |
-| \d book          | Show the `book` table schema.                |
-| \quit            | Quit interactive PSQL console                |
+| PSQL command              | Description                                           |
+|---------------------------|-------------------------------------------------------|
+| \list                     | List all databases.                                   |
+| \connect bookshop_catalog | Connect to specific database (e.g. bookshop_catalog). |
+| \dt                       | List all tables.                                      |
+| \d book                   | Show the `book` table schema.                         |
+| \quit                     | Quit interactive PSQL console                         |
 
 ### Working with container images on Docker
 
@@ -289,7 +289,7 @@ Verify that the network has been successfully created:
 Now start PostgreSQL container, specifying that it should be part of catalog-network. Using the **--net** argument ensures the container will join the
 specified network and rely on the Docker built-in DNS server:
 
-`$ docker run -d --name bookshop-postgres --net catalog-network -e POSTGRES_USER=user -e POSTGRES_PASSWORD=password -e POSTGRES_DB=catalog -p 5432:5432 postgres:14.2`
+`$ docker run -d --name bookshop-postgres --net catalog-network -e POSTGRES_USER=user -e POSTGRES_PASSWORD=password -e POSTGRES_DB=bookshop_catalog -p 5432:5432 postgres:14.2`
 
 Now first build the JAR artifacts:
 
@@ -301,7 +301,7 @@ Build the container image:
 
 Run the Docker container image using port forwarding to 9001 and using the Docker build-in DNS server to connect to the catalog-network:
 
-`$ docker run -d --name catalog-service --net catalog-network -p 9001:9001 -e SPRING_DATASOURCE_URL=jdbc:postgresql://bookshop-postgres:5432/catalog -e SPRING_PROFILES_ACTIVE=test-data catalog-service`
+`$ docker run -d --name catalog-service --net catalog-network -p 9001:9001 -e SPRING_DATASOURCE_URL=jdbc:postgresql://bookshop-postgres:5432/bookshop_catalog -e SPRING_PROFILES_ACTIVE=test-data catalog-service`
 
 #### Secure Dockerfile
 You should be aware that containers run using the root user by default, potentially letting them get root access to the Docker host.

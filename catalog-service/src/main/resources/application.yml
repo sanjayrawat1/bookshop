@@ -54,7 +54,7 @@ spring:
   datasource:
     username: user
     password: password
-    url: jdbc:postgresql://localhost:5432/catalog
+    url: jdbc:postgresql://localhost:5432/bookshop_catalog
     hikari:
       # Maximum time (ms) to spend waiting to get a connection from the pool.
       connection-timeout: 2000

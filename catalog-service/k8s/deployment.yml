@@ -42,7 +42,7 @@ spec:
               value: http://config-service
             - name: SPRING_DATASOURCE_URL
               # the hostname part of the URL is the name of the Service object that was used to expose the database.
-              value: jdbc:postgresql://bookshop-postgres/catalog
+              value: jdbc:postgresql://bookshop-postgres/bookshop_catalog
             - name: SPRING_PROFILES_ACTIVE
               value: test-data
 
