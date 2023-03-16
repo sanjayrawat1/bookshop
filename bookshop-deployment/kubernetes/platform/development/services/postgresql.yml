@@ -22,7 +22,7 @@ spec:
             - name: POSTGRES_PASSWORD
               value: password
             - name: POSTGRES_DB
-              value: catalog
+              value: bookshop_catalog
           resources:
             requests:
               cpu: 100m

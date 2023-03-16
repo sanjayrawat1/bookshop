@@ -20,7 +20,7 @@ services:
       # Debug connections are accepted via a socket on port 8001 provided by Buildpacks.
       - BPL_DEBUG_PORT=8001
       - SPRING_CLOUD_CONFIG_URI=http://config-service:8888
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://bookshop-postgres:5432/catalog
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://bookshop-postgres:5432/bookshop_catalog
       - SPRING_PROFILES_ACTIVE=test-data
 
   config-service:
