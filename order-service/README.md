@@ -67,3 +67,31 @@ your system architecture as a whole. You should carefully design a time-limiting
 SLAs and guarantee a good user experience.
 If Catalog Service were available, but a response couldn't get to Order Service within the time limit, the request would likely still be processed by Catalog
 Service. That is a critical point to consider when configuring timeouts.
+
+##### Retries
+When a service downstream doesn't respond within a specific time limit or replies with a server error related to its momentary inability to process the request,
+you can configure your client to try again. When a service doesn't respond correctly, it's likely because it's going through some issues, and it's unlikely
+that it will manage to recover immediately. Starting a sequence of retry attempts, one after the other, risks making the system even more unstable.
+You don't want to launch a DoS attack on your own applications!
+A better approach is using an _exponential backoff_ strategy to perform each retry attempt with a growing delay. By waiting for more and more time between one
+attempt and the next, you're more likely to give the backing service time to recover and become responsive again.
+
+![](https://github.com/sanjayrawat1/bookshop/blob/main/order-service/diagrams/request-response-interaction-when-retries-defined.drawio.svg)
+
+When Catalog Service doesn't respond successfully, Order Service will try at most three more times with a growing delay.
+
+Project Reactor provides a retryWhen() operator to retry an operation when it fails. The position where you apply it to the reactive stream matters.
+1. Placing the retryWhen() operator after timeout() means that the timeout is applied to each retry attempt.
+2. Placing the retryWhen() operator before timeout() means that the timeout is applied to the overall operation (that is, the whole sequence of the initial
+request and retries has to happen within the given time limit).
+
+In BookClient, we want the timeout to apply to each retry attempt, so we'll use the first option. The time limiter is applied first. If the timeout expires,
+the retryWhen() operator kicks in and tries the request again.
+
+Retries increase the chance of getting a response back from a remote service when it's momentarily overloaded or unresponsive. Use them wisely.
+Idempotent requests like read operations can be retried without harm. Even some write requests can be idempotent. You could perform it a few times,
+but the outcome will not change. You shouldn't retry non-idempotent requests, or you'll risk generating inconsistent states.
+
+Retries are a helpful pattern whenever the service downstream is momentarily unavailable or slow due to overloading, but it's likely to heal soon. In this case,
+you should limit the number of retries and use exponential backoff to prevent adding extra load on an already overloaded service. On the other hand,
+you shouldn't retry the request if the service fails with a recurrent error, such as if it's entirely down or returns an acceptable error like 404.

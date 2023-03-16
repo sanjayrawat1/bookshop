@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
 
 /**
  * Catalog Service Client to interact with BookController.
@@ -20,6 +21,12 @@ public class BookClient {
     private final WebClient catalogClient;
 
     public Mono<Book> getBookByIsbn(String isbn) {
-        return catalogClient.get().uri(BOOKS_ROOT_API + isbn).retrieve().bodyToMono(Book.class).timeout(Duration.ofSeconds(3), Mono.empty());
+        return catalogClient
+            .get()
+            .uri(BOOKS_ROOT_API + isbn)
+            .retrieve()
+            .bodyToMono(Book.class)
+            .timeout(Duration.ofSeconds(3), Mono.empty())
+            .retryWhen(Retry.backoff(3, Duration.ofMillis(100)));
     }
 }
