@@ -30,3 +30,11 @@ Flyway doesn't support R2DBC yet: https://github.com/flyway/flyway/issues/2502, 
 startup and in a single thread, so using a non-reactive communication for this one case doesn't impact the overall application's scalability and efficiency.
 
 Finally, in the application.yml file, configure Flyway to use the same database managed with Spring Data R2DBC but using the JDBC driver.
+
+##### Interaction between order service and catalog service
+You will use WebClient to establish non-blocking request/response interactions. I will also explain how to make your application more resilient by adopting patterns like
+timeouts, retries, and fail-overs using the Reactor operators timeout(), retryWhen(), and onError().
+
+When an order is submitted, Order Service calls Catalog Service over HTTP to check the book's availability and fetch its details.
+
+![](https://github.com/sanjayrawat1/bookshop/blob/main/order-service/diagrams/order-service-interaction-with-catalog-service.drawio.svg)

@@ -9,6 +9,8 @@ group = "com.github.sanjayrawat1.bookshop"
 version = "0.0.1-SNAPSHOT"
 java.sourceCompatibility = JavaVersion.VERSION_19
 
+description = "Provides functionality for purchasing books."
+
 configurations {
     compileOnly {
         extendsFrom(configurations.annotationProcessor.get())
@@ -32,6 +34,7 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql")
     runtimeOnly("org.springframework:spring-jdbc")
     annotationProcessor("org.projectlombok:lombok")
+    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.projectreactor:reactor-test")
     testImplementation("org.testcontainers:junit-jupiter")

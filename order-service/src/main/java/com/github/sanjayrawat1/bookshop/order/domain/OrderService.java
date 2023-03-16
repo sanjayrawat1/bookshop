@@ -1,5 +1,7 @@
 package com.github.sanjayrawat1.bookshop.order.domain;
 
+import com.github.sanjayrawat1.bookshop.order.book.Book;
+import com.github.sanjayrawat1.bookshop.order.book.BookClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,8 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class OrderService {
 
+    private final BookClient bookClient;
+
     private final OrderRepository orderRepository;
 
     public Flux<Order> getAllOrders() {
@@ -23,12 +27,18 @@ public class OrderService {
     }
 
     public Mono<Order> submitOrder(String isbn, int quantity) {
-        // 1. Mono.just() - Creates a Mono out of an Order object.
-        // 2. flatMap(repo::save) - Saves the order object produced asynchronously by the previous step of the reactive stream into the database.
-        return Mono.just(buildRejectedOrder(isbn, quantity)).flatMap(orderRepository::save);
+        return bookClient
+            .getBookByIsbn(isbn)
+            .map(book -> buildAcceptedOrder(book, quantity))
+            .defaultIfEmpty(buildRejectedOrder(isbn, quantity))
+            .flatMap(orderRepository::save);
     }
 
     public static Order buildRejectedOrder(String bookIsbn, int quantity) {
         return Order.of(bookIsbn, null, null, quantity, OrderStatus.REJECTED);
+    }
+
+    public static Order buildAcceptedOrder(Book book, int quantity) {
+        return Order.of(book.isbn(), book.title() + " - " + book.author(), book.price(), quantity, OrderStatus.ACCEPTED);
     }
 }
