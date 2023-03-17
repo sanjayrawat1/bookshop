@@ -3,8 +3,8 @@ on: push
 
 env:
   REGISTRY: ghcr.io
-  # IMAGE_NAME: <your_github_username>/catalog-service
-  IMAGE_NAME: sanjayrawat1/catalog-service
+  # IMAGE_NAME: <your_github_username>/config-service
+  IMAGE_NAME: sanjayrawat1/config-service
   VERSION: latest
 
 jobs:
