@@ -95,3 +95,19 @@ but the outcome will not change. You shouldn't retry non-idempotent requests, or
 Retries are a helpful pattern whenever the service downstream is momentarily unavailable or slow due to overloading, but it's likely to heal soon. In this case,
 you should limit the number of retries and use exponential backoff to prevent adding extra load on an already overloaded service. On the other hand,
 you shouldn't retry the request if the service fails with a recurrent error, such as if it's entirely down or returns an acceptable error like 404.
+
+##### Fallback and error handling
+A system is resilient if it keeps providing its services in the face of faults without the user noticing. Sometimes that's not possible, so the least you can
+do is ensure a graceful degradation of the service level. Specifying a fallback behavior can help you limit the fault to a small area while preventing the rest
+of the system from misbehaving or entering a faulty state.
+A fallback function can be triggered when some errors or exceptions occur, but they’re not all the same. Some errors are acceptable and semantically meaningful
+in the context of your business logic. When Order Service calls Catalog Service to fetch information about a specific book, a 404 response might be returned.
+That's an acceptable response that should be addressed to inform the user that the order cannot be submitted because the book is not available in the catalog.
+However, in that case you don't want to retry the request as well. Project Reactor provides an onErrorResume() operator to define a fallback when a specific
+error occurs. You can add it to reactive stream after timeout() and before retry() operator so that if an acceptable error response (for example 404) is
+received the retry operator is not triggered. Then you can use the same operator again at the end of stream to catch any other exception and fallback.
+
+In a real-world scenario, you would probably want to return some contextual information depending on the type of error, instead of always returning an empty
+object. For example, you could add a reason field to the Order object to describe why it's been rejected. Was it because the book is unavailable in the catalog
+or because of network problems? In the second case, you could inform the user that the order cannot be processed because it's momentarily unable to check the
+book's availability. A better option would be to save the order in a pending state, queue the order submission request, and try it again later.
