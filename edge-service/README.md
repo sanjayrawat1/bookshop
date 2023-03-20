@@ -56,3 +56,29 @@ We want to define retry attempts for all GET requests whenever the error is in t
 is in the 4xx range. We can also list the exceptions for which a retry should be attempted, such as IOException and TimeoutException.
 You shouldn't keep retrying requests one after the other. You should use backoff strategy instead. By default, the delay is computed using the formula
 firstBackoff * (factor ^ n). If you set the basedOnPreviousValue parameter to true, the formula will be prevBackoff * factor.
+
+#### Fault tolerance with Spring Cloud Circuit Breaker and Resilience4J
+The retry pattern is useful when a downstream service is momentarily unavailable. But what if it stays down for more than a few instants? At that point we
+could stop forwarding requests to it until we're sure that it's back. Continuing to send requests won't be beneficial for the caller or the callee. In that
+scenario, the circuit breaker pattern comes in handy.
+
+Resilience is a critical property of cloud native applications. One of the principles for achieving resilience is blocking a failure from cascading and
+affecting other components. Consider a distributed system where application X depends on application Y. If application Y fails, will application X fail, too?
+A circuit breaker can block a failure in one component from propagating to the others depending on it, protecting the rest of the system. That is accomplished
+by temporarily stopping communication with the faulty component until it recovers.
+
+In the world of distributed systems, you can establish circuit breakers at the integration points between components. Think about Edge Service and Catalog
+Service. In a typical scenario, the circuit is closed, meaning that the two services can interact over the network. For each server error response returned by
+Catalog Service, the circuit breaker in Edge Service would register the failure. When the number of failures exceeds a certain threshold, the circuit breaker
+trips, and the circuit transitions to open.
+
+While the circuit is open, communications between Edge Service and Catalog Service are not allowed. Any request that should be forwarded to Catalog Service
+will fail right away. In this state, either an error is returned to the client, or fallback logic is executed. After an appropriate amount of time to permit
+the system to recover, the circuit breaker transitions to a half-open state, allowing the next call to Catalog Service to go through. That is an exploratory
+phase to check if there are still issues in contacting the downstream service. If the call succeeds, the circuit breaker is reset and transitions to closed.
+Otherwise, it goes back to being open.
+
+![](diagrams/circuit-breaker-state.drawio.svg)
+
+A circuit breaker ensures fault tolerance when a downstream service exceeds the maximum number of failures allowed by blocking any communication between
+upstream and downstream services. The logic is based on three states: closed, open, and half-open.

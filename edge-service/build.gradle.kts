@@ -19,6 +19,7 @@ extra["springCloudVersion"] = "2022.0.1"
 
 dependencies {
     implementation("org.springframework.cloud:spring-cloud-starter-gateway")
+    implementation("org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 

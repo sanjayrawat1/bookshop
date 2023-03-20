@@ -39,7 +39,20 @@ spring:
           uri: ${CATALOG_SERVICE_URL:http://localhost:9001}/books
           predicates:
             - Path=/books/**
+          filters:
+            # name of the filter, you can choose to apply it to specific routes or define it as a default filter, like Retry filter
+            - name: CircuitBreaker
+              args:
+                # name of the circuit breaker
+                name: catalogCircuitBreaker
+                # forwards request to this URI when the circuit is open
+                fallbackUri: forward:/catalog-fallback
         - id: order-route
           uri: ${ORDER_SERVICE_URL:http://localhost:9002}/orders
           predicates:
             - Path=/orders/**
+          filters:
+            - name: CircuitBreaker
+              # no fallback is defined for this circuit breaker
+              args:
+                name: orderCircuitBreaker
