@@ -82,3 +82,10 @@ Otherwise, it goes back to being open.
 
 A circuit breaker ensures fault tolerance when a downstream service exceeds the maximum number of failures allowed by blocking any communication between
 upstream and downstream services. The logic is based on three states: closed, open, and half-open.
+
+When a circuit breaker switches to the open state, we'll want at least to degrade the service level gracefully and make the user experience as pleasant as
+possible by defining the fallback REST APIs.
+
+For simplicity, the fallback for GET requests returns an empty string, whereas the fallback for POST requests returns an HTTP 503 error. In a real scenario,
+you might want to adopt different fallback strategies depending on the context, including throwing a custom exception to be handled from the client or
+returning the last value saved in the cache for the original request.
