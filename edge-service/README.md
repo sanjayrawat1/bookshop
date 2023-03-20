@@ -33,3 +33,26 @@ another set of filters before being returned to the client.
 By default, the Netty HTTP client used by Spring Cloud Gateway is configured with an elastic connection pool to increase the number of concurrent connections
 dynamically as the workload increases. Depending on the number of requests your system receives simultaneously, you might want to switch to a fixed connection
 pool, so you have more control over the number of connections.
+
+#### Processing requests and responses through filters
+Routes and predicate alone make the application act as a proxy, but it's filter that make Spring Cloud Gateway really powerful.
+
+Pre-filters can run before forwarding incoming requests to a downstream application. They can be used for:
+* Manipulating the request headers.
+* Applying rate limiting and circuit breaking.
+* Defining retries and timeouts for the proxied requests.
+* Triggering an authentication flow with OAuth2 and OpenID Connect.
+
+Post-filters can apply to outgoing responses after they are received from the downstream application and before sending them back to the client.
+They can be used for:
+* Setting security headers.
+* Manipulating the response body to remove sensitive information.
+
+Spring Cloud Gateway comes bundled with many filters that you can use to perform different actions, including adding headers to a request, configuring a
+circuit breaker, saving the web session, retrying the request on failure, or activating a rate limiter.
+
+##### Using the retry filter
+We want to define retry attempts for all GET requests whenever the error is in the 5xx range (SERVER_ERROR). We don't want to retry requests when the error
+is in the 4xx range. We can also list the exceptions for which a retry should be attempted, such as IOException and TimeoutException.
+You shouldn't keep retrying requests one after the other. You should use backoff strategy instead. By default, the delay is computed using the formula
+firstBackoff * (factor ^ n). If you set the basedOnPreviousValue parameter to true, the formula will be prevBackoff * factor.
