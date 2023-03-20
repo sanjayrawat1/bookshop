@@ -56,3 +56,24 @@ spring:
               # no fallback is defined for this circuit breaker
               args:
                 name: orderCircuitBreaker
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      # default configuration bean for all circuit breakers
+      default:
+        # the size of the sliding window used to record the outcome of calls when the circuit is closed
+        sliding-window-size: 20
+        # number of permitted calls when the circuit is half open
+        permitted-number-of-calls-in-half-open-state: 5
+        # when the failure rate is above the threshold, the circuit becomes open
+        failure-rate-threshold: 50
+        # waiting time before moving from open to half-open (ms)
+        wait-duration-in-open-state: 15000
+  timelimiter:
+    configs:
+      # default configuration bean for all time limiters
+      default:
+        # configures a timeout (seconds), this timeout config will take precedence over the response timeout we define for netty HTTP client
+        # using the property -> spring.cloud.gateway.httpclient.response-timeout
+        timeout-duration: 5s
