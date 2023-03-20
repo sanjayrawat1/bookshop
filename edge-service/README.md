@@ -78,7 +78,7 @@ the system to recover, the circuit breaker transitions to a half-open state, all
 phase to check if there are still issues in contacting the downstream service. If the call succeeds, the circuit breaker is reset and transitions to closed.
 Otherwise, it goes back to being open.
 
-![](diagrams/circuit-breaker-state.drawio.svg)
+![](https://github.com/sanjayrawat1/bookshop/blob/main/edge-service/diagrams/circuit-breaker-state.drawio.svg)
 
 A circuit breaker ensures fault tolerance when a downstream service exceeds the maximum number of failures allowed by blocking any communication between
 upstream and downstream services. The logic is based on three states: closed, open, and half-open.
@@ -89,3 +89,9 @@ possible by defining the fallback REST APIs.
 For simplicity, the fallback for GET requests returns an empty string, whereas the fallback for POST requests returns an HTTP 503 error. In a real scenario,
 you might want to adopt different fallback strategies depending on the context, including throwing a custom exception to be handled from the client or
 returning the last value saved in the cache for the original request.
+
+#### Combining Resilience Patterns - circuit breakers, retries and time limiters
+When you combine multiple resilience patterns, the sequence in which they are applied is fundamental. Spring cloud gateway takes care of applying the
+TimeLimiters first (or the timeout on the HTTP client), the CircuitBreaker filter, and finally retry.
+
+![](https://github.com/sanjayrawat1/bookshop/blob/main/edge-service/diagrams/multiple-resilience-pattern-sequence-when-combined.drawio.svg)
