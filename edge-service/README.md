@@ -28,3 +28,8 @@ Requests are matched against predicates, filtered, and finally forwarded to the 
 another set of filters before being returned to the client.
 
 ![](https://github.com/sanjayrawat1/bookshop/blob/main/edge-service/diagrams/routing-in-spring-cloud-gateway.drawio.svg)
+
+
+By default, the Netty HTTP client used by Spring Cloud Gateway is configured with an elastic connection pool to increase the number of concurrent connections
+dynamically as the workload increases. Depending on the number of requests your system receives simultaneously, you might want to switch to a fixed connection
+pool, so you have more control over the number of connections.
