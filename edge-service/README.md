@@ -95,3 +95,14 @@ When you combine multiple resilience patterns, the sequence in which they are ap
 TimeLimiters first (or the timeout on the HTTP client), the CircuitBreaker filter, and finally retry.
 
 ![](https://github.com/sanjayrawat1/bookshop/blob/main/edge-service/diagrams/multiple-resilience-pattern-sequence-when-combined.drawio.svg)
+
+You can verify the result of applying these patterns to Edge Service by using a tool like Apache Benchmark (https://httpd.apache.org/docs/2.4/programs/ab.html).
+If you’re using macOS or Linux, you might have this tool already installed. Otherwise, you can follow the instructions on the official website and install it.
+
+To verify the result, run below command and see the output:
+
+`$ ab -n 21 -c 1 -m POST http://localhost:9000/orders`
+
+`$ ab -n 21 -c 1 -m POST http://localhost:9000/books`
+
+For books API call, all requests have been forwarded to the fallback endpoint, so the client didn't experience any errors.

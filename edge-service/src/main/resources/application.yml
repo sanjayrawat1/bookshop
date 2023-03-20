@@ -5,6 +5,10 @@ server:
     idle-timeout: 15s
   shutdown: graceful
 
+logging:
+  level:
+    io.github.resilience4j: DEBUG
+
 spring:
   application:
     name: edge-service
