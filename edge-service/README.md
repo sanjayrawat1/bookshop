@@ -17,3 +17,14 @@ However, it's important to remember that an edge server adds complexity to the s
 It also adds a new network hop to the system, so the response time will increase. That's usually an insignificant cost, but you should keep it in mind.
 Since the edge server is the entry point to the system, it's at risk of becoming a single point of failure. As a basic mitigation strategy, you should deploy
 at least two replicas of an edge server.
+
+Spring Cloud Gateway provides three main building blocks:
+* **Route**: This is identified by a unique ID, a collection of predicates for deciding whether to follow the route, a URI for forwarding the request if the
+predicates allow, and a collection of filters that are applied either before or after forwarding request downstream.
+* **Predicate**: This matches anything from the HTTP request, including path, host, headers, query parameters, cookies and body.
+* **Filter**: This modifies an HTTP request or response before or after forwarding the request to the downstream service.
+
+Requests are matched against predicates, filtered, and finally forwarded to the downstream service, which replies with a response that goes through
+another set of filters before being returned to the client.
+
+![](https://github.com/sanjayrawat1/bookshop/blob/main/edge-service/diagrams/routing-in-spring-cloud-gateway.drawio.svg)
