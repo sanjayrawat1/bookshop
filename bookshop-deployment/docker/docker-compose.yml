@@ -67,3 +67,9 @@ services:
     volumes:
       # Mounts the initialization SQL script to the container as a volume.
       - ./postgresql/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  bookshop-redis:
+    image: "redis:7.0"
+    container_name: "bookshop-redis"
+    ports:
+      - "6379:6379"
