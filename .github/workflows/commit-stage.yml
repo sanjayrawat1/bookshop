@@ -15,7 +15,6 @@ jobs:
           catalog-service,
           config-service,
           order-service,
-          edge-service,
         ]
     defaults:
       run:
