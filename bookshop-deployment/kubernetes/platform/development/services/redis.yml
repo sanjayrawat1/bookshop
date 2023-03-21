@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bookshop-redis
+  labels:
+    db: bookshop-redis
+spec:
+  selector:
+    matchLabels:
+      db: bookshop-redis
+  template:
+    metadata:
+      labels:
+        db: bookshop-redis
+    spec:
+      containers:
+        - name: bookshop-redis
+          image: redis:7.0
+          resources:
+            requests:
+              cpu: 100m
+              memory: 50Mi
+            limits:
+              cpu: 200m
+              memory: 100Mi
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: bookshop-redis
+  labels:
+    db: bookshop-redis
+spec:
+  type: ClusterIP
+  selector:
+    db: bookshop-redis
+  ports:
+    - protocol: TCP
+      port: 6379
+      targetPort: 6379
