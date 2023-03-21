@@ -149,3 +149,109 @@ distributed session store is that you usually have multiple instances of a given
 seamless experience to the user. Redis is a popular option for session management, and it's supported by Spring Session Data Redis.
 
 We want the session to be saved in Redis before forwarding a request downstream. How can we do that? Spring Cloud Gateway provides **SaveSession** filter.
+
+#### Managing external access with Kubernetes Ingress
+Edge Service represents the entry point to the Bookshop system. However, when it's deployed in a kubernetes cluster, it's only accessible from within the
+cluster itself. We used port-forwarding feature to expose a k8s service defined in a minikube cluster to your local computer. That's a useful strategy during
+development, but it's not suitable for production. Using the Ingress API you can manage the external access to the application running in a k8s cluster.
+
+##### Ingress API and Ingress Controller
+We can use Service object of type **ClusterIP** to expose applications inside a k8s cluster, that's what we have done so far to make it possible for Pods to
+interact with each other within the cluster.
+
+A Service object can also be of type **LoadBalancer**, which relies on an external load balancer provisioned by the cloud provider to expose an application to the
+internet.
+The **LoadBalancer** Service approach involves assigning a different IP address to each service we decide to expose to the internet. Since services are directly
+exposed, we don't have the chance to apply any further network configuration, such as TLS termination. Spring ecosystem provides everything we need to address
+those concerns. However, since we want to run our system on Kubernetes, we can manage those infrastructural concerns at the platform level. That's where the
+Ingress API comes in handy.
+
+An Ingress is an object that manages external access to the services in a cluster, typically HTTP. Ingress may provide load balancing, SSL termination and
+name-based virtual hosting. An Ingress object acts as an entry point into a Kubernetes cluster and is capable of routing traffic from a single external IP
+address to multiple services running inside the cluster. We can use an Ingress object to perform load balancing, accept external traffic directed to a specific
+URL, and manage the TLS termination to expose the application services via HTTPS.
+
+Ingress objects don't accomplish anything by themselves. We use an Ingress object to declare the desired state in terms of routing and TLS termination. The
+actual component that enforces those rules and routes traffic from outside the cluster to the applications inside is the **ingress controller**.
+
+Ingress controllers are applications that are usually built using reverse proxies like NGINX, HAProxy, or Envoy. Some examples are Ambassador Emissary, Contour,
+and Ingress NGINX.
+
+In our local environment, we'll need some additional configuration to make the routing work. For the Polar Bookshop example, we'll use Ingress NGINX
+(https://github.com/kubernetes/ingress-nginx) in both environments.
+
+Since we use minikube to manage a local Kubernetes cluster, we can rely on a built-in add-on to enable the Ingress functionality based on Ingress NGINX.
+First, let’s start the bookshop local cluster:
+
+`$ minikube start --cpus 2 --memory 4g --driver docker --profile bookshop`
+
+Next we can enable the ingress add-on, which will make sure that Ingress NGINX is deployed to our local cluster:
+
+`$ minikube addons enable ingress --profile bookshop`
+
+In the end, you can get information about the different components deployed with Ingress NGINX as follows:
+
+`$ kubectl get all -n ingress-nginx`
+
+**-n ingress-nginx** means that we want to fetch all objects created in the ingress-nginx namespace.
+A namespace is an abstraction used by Kubernetes to support isolation of groups of resources within a single cluster. Namespaces are used to organize objects
+in a cluster and provide a way to divide cluster resources.
+
+We use namespaces to keep our clusters organized and define network policies to keep certain resources isolated for security reasons. So far, we've been working
+with the default namespace, and we'll keep doing that for all our Bookshop applications. However, when it comes to platform services such as Ingress NGINX,
+we'll rely on dedicated namespaces to keep those resources isolated.
+
+Navigate to the kubernetes/platform/development folder located in your polar-deployment repository, and run following command to deploy PostgreSQL and Redis in
+your local cluster:
+
+`$ kubectl apply -f services`
+
+Package the Edge Service as a container image from edge-service root folder by running following command:
+
+`$ ./gradlew bootBuildImage`
+
+Load the artifact to the local k8s cluster:
+
+`$ minikube image load edge-service --profile bookshop`
+
+#### Working with Ingress objects
+Edge Service takes care of application routing, but it should not be concerned with the underlying infrastructure and network configuration. Using an Ingress
+resource, we can decouple the two responsibilities. Developers would maintain Edge Service, while the platform team would manage the ingress controller and the
+network configuration (perhaps relying on a service mesh like Linkerd or Istio).
+
+##### The deployment architecture of the Polar Bookshop system after introducing an Ingress to manage external access to the cluster
+
+![](https://github.com/sanjayrawat1/bookshop/blob/main/edge-service/diagrams/deployment-architecture-of-bookshop-after-introducing-ingress.drawio.svg)
+
+It's common to define Ingress routes and configurations based on the DNS name used to send the HTTP request. Since we are working locally, and assuming we
+don’t have a DNS name, we can call the external IP address provisioned for the Ingress to be accessible from outside the cluster. On Linux, you can use the IP
+address assigned to the minikube cluster. You can retrieve that value by running the following command:
+
+`$ minikube ip --profile polar`
+
+On macOS and Windows, the ingress add-on doesn't yet support using the minikube cluster's IP address when running on Docker. Instead, we need to use the
+**minikube tunnel --profile polar** command to expose the cluster to the local environment, and then use the 127.0.0.1 IP address to call the cluster. This is
+similar to the kubectl port-forward command, but it applies to the whole cluster instead of a specific service.
+
+Define the Ingress object in **ingress.yml** file in **k8s** folder. After this deploy edge-service and ingress to local k8s cluster, run following command:
+
+`$ kubectl apply -f k8s`
+
+Verify that the Ingress object has been created correctly with the following command:
+
+`$ kubectl get ingress`
+
+Test that edge-service is correctly available through th Ingress. If you're on Linux, you don't need any further preparation steps. If you're on macOS or
+Windows run the following command to expose your minikube cluster to your localhost:
+
+`$ minikube tunnel --profile bookshop`
+
+Finally, test the application:
+
+`http 127.0.0.1/books`
+
+When you are done trying out the deployment, you can stop and delete the local Kubernetes cluster with the following commands:
+
+`$ minikube stop --profile polar`
+
+`$ minikube delete --profile polar`
