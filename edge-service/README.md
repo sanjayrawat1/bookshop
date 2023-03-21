@@ -106,3 +106,38 @@ To verify the result, run below command and see the output:
 `$ ab -n 21 -c 1 -m POST http://localhost:9000/books`
 
 For books API call, all requests have been forwarded to the fallback endpoint, so the client didn't experience any errors.
+
+#### Request rate limiting
+Rate limiting is a pattern used to control the rate of traffic sent to or received from an application, helping to make your system more resilient and robust.
+In the context of HTTP interactions, you can apply this pattern to control outgoing or incoming network traffic using client-side and server-side rate limiters,
+respectively.
+* Client-side rate limiters are for constraining the number of requests sent to a downstream service in a given period. It's a useful pattern to adopt when
+third-party organizations like cloud providers manage and offer the downstream service. You’ll want to avoid incurring extra costs for having sent more
+requests than are allowed by your subscription.
+* Server-side rate limiters are for constraining the number of requests received by an upstream service (or client) in a given period. This pattern is handy
+when implemented in an API gateway to protect the whole system from overloading or from DoS attacks.
+
+Resilience4J supports the client-side rate limiter and bulkhead patterns for both reactive and non-reactive applications. Spring Cloud Gateway supports the
+server-side rate limiter pattern by using Spring Cloud Gateway and Spring Data Redis Reactive.
+
+##### Integrating Spring with Redis
+We will use Redis to back the **RequestRateLimiter** gateway filter that provides server-side rate limiting support. Depending on the requirements, you can
+configure the RequestRateLimiter filter for specific routes or as a default filter.
+
+The implementation of **RequestRateLimiter** on redis is based on the _token bucket algorithm_. Each user is assigned a bucket inside which tokens are dripped
+over time at a specific rate (the replenish rate). Each bucket has a maximum capacity (the burst capacity). When a user makes a request, a token is removed
+from its bucket. When there are no more tokens left, the request is not permitted, and the user will have to wait until more tokens are dripped into its bucket.
+To know more about the token bucket algorithms, read this blog - https://stripe.com/blog/rate-limiters
+
+Spring Cloud Gateway relies on Redis to keep track of the number of requests happening each second. By default, each user is assigned a bucket. However, we
+will use single bucket for all requests until we introduce an authentication mechanism.
+
+What happens if Redis becomes unavailable? Spring Cloud Gateway has been built with resilience in mind, so it will keep its service level, but the rate limiters
+would be disabled until Redis is up and running again.
+
+When the rate limiter pattern is combined with other patterns like time limiters, circuit breakers, and retries, the rate limiter is applied first. If a user's
+request exceeds the rate limit, it is rejected right away.
+
+Spring Cloud Gateway is configured to append headers with details about rate limiting to each HTTP response.
+You might not want to expose this information to clients in cases where the information could help bad actors craft attacks against your system. Or you might
+need different header names. Either way, you can use the `spring.cloud.gateway.redis-rate-limiter` property group to configure that behavior.

@@ -5,9 +5,9 @@ server:
     idle-timeout: 15s
   shutdown: graceful
 
-logging:
-  level:
-    io.github.resilience4j: DEBUG
+#logging:
+#  level:
+#    io.github.resilience4j: DEBUG
 
 spring:
   application:
@@ -27,6 +27,18 @@ spring:
           # time after which communication channel will be closed
           max-life-time: 60s
       default-filters:
+        - name: RequestRateLimiter
+          args:
+            redis-rate-limiter:
+              # Number of tokens dripped in the bucket each second
+              replenish-rate: 10
+              # Allows request bursts of up to 20 requests, when a spike occurs, up to 20 requests are allowed per second.
+              # Since replenish rate is lower than the burst capacity, subsequent burst are not allowed.
+              # If two spikes happen sequentially, only the first one will succeed, while the second one will result in some request being
+              # dropped with an HTTP 429 - Too Many Requests response.
+              burst-capacity: 20
+              # How many tokens a request costs
+              requested-token: 1
         - name: Retry
           args:
             retries: 3
@@ -60,6 +72,13 @@ spring:
               # no fallback is defined for this circuit breaker
               args:
                 name: orderCircuitBreaker
+  redis:
+    host: localhost
+    port: 6379
+    # time limit for a connection to be established
+    connect-timeout: 2s
+    # time limit for a response to be received
+    timeout: 1s
 
 resilience4j:
   circuitbreaker:
