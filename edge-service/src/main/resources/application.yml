@@ -9,12 +9,40 @@ server:
 #  level:
 #    io.github.resilience4j: DEBUG
 
+management:
+  endpoints:
+    web:
+      base-path: /management
+      exposure:
+        include: refresh
+
 spring:
   application:
     name: edge-service
   lifecycle:
     timeout-per-shutdown-phase: 15s
+  config:
+    # Imports configuration data from a config server when available.
+    import: "optional:configserver:"
   cloud:
+    config:
+      # The URL of the config server.
+      uri: http://localhost:8888
+      # Timeout on waiting to connect to the config server (ms).
+      request-connect-timeout: 5000 # 5s
+      # Timeout on waiting to read configuration data from the config server (ms).
+      request-read-timeout: 5000 # 5s
+      # Makes a failure to connect to the config server fatal.
+      fail-fast: false # In production, set to true
+      retry:
+        # Maximum number of attempts.
+        max-attempts: 6
+        # Initial retry interval for backoff (ms).
+        initial-interval: 1000 # 1s
+        # Maximum retry interval for backoff (ms).
+        max-interval: 2000 # 2s
+        # Multiplier to compute the next interval.
+        multiplier: 1.1
     gateway:
       httpclient:
         connect-timeout: 2000
@@ -110,3 +138,6 @@ resilience4j:
         # configures a timeout (seconds), this timeout config will take precedence over the response timeout we define for netty HTTP client
         # using the property -> spring.cloud.gateway.httpclient.response-timeout
         timeout-duration: 5s
+
+bookshop:
+  greeting: Welcome to the local bookshop gateway!
