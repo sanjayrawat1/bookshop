@@ -41,3 +41,9 @@ To check the database logs run below command:
 To undeploy the database, you can run the below command from the same folder:
 
 `$ kubectl delete -f services`
+
+##### Deployment Scripts
+Scripts that performs all the previous operations with a single command. You can run it to create a local Kubernetes cluster with minikube, enable the Ingress 
+NGINX add-on, and deploy the backing services used by Polar Bookshop. You’ll find the create-cluster.sh and destroy-cluster.sh files in the 
+kubernetes/platform/development folder. 
+On macOS and Linux, you might need to make the scripts executable via the **chmod +x create-cluster.sh** command.
