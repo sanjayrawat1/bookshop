@@ -27,6 +27,8 @@ spring:
           # time after which communication channel will be closed
           max-life-time: 60s
       default-filters:
+        # Ensures the session data is saved before forwarding a request downstream
+        - name: SaveSession
         - name: RequestRateLimiter
           args:
             redis-rate-limiter:
@@ -79,6 +81,14 @@ spring:
     connect-timeout: 2s
     # time limit for a response to be received
     timeout: 1s
+  session:
+    # Instruct Spring Boot to use Redis for session management
+    store-type: redis
+    # Session timeout, default is 30 minutes
+    timeout: 10m
+    redis:
+      # Unique namespace to prefix all session data coming from Edge Service
+      namespace: bookshop:edge
 
 resilience4j:
   circuitbreaker:

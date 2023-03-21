@@ -141,3 +141,11 @@ request exceeds the rate limit, it is rejected right away.
 Spring Cloud Gateway is configured to append headers with details about rate limiting to each HTTP response.
 You might not want to expose this information to clients in cases where the information could help bad actors craft attacks against your system. Or you might
 need different header names. Either way, you can use the `spring.cloud.gateway.redis-rate-limiter` property group to configure that behavior.
+
+#### Distributed Session Management with Redis
+Spring provides session management features with the Spring Session project. By default, session data is stored in memory, but that's not feasible in a cloud
+native application. You want to keep it in an external service so that the data survives the application shutdown. Another fundamental reason for using a
+distributed session store is that you usually have multiple instances of a given application. You'll want them to access the same session data to provide a
+seamless experience to the user. Redis is a popular option for session management, and it's supported by Spring Session Data Redis.
+
+We want the session to be saved in Redis before forwarding a request downstream. How can we do that? Spring Cloud Gateway provides **SaveSession** filter.
