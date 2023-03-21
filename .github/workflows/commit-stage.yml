@@ -14,7 +14,8 @@ jobs:
         project: [
           catalog-service,
           config-service,
-          order-service
+          order-service,
+          edge-service,
         ]
     defaults:
       run:
@@ -74,6 +75,7 @@ jobs:
           catalog-service,
           config-service,
           order-service,
+          edge-service,
         ]
     defaults:
       run:
