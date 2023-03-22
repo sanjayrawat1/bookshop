@@ -9,3 +9,26 @@ spring:
       # definition of the function managed by Spring Cloud Function.
       # this property lets you declare which functions you want Spring Cloud Function to manage and integrate, resulting in a specific data flow.
       definition: pack|label
+    stream:
+      # section for configuring destination bindings
+      bindings:
+        # the input binding
+        # the input binding will be mapped to an `order-accepted` exchange and an `order-accepted.dispatcher-service` queue in RabbitMQ
+        # if they don't exist already in RabbitMQ, the binder will create them.
+        # the queue naming strategy (<destination>.<group>) includes a parameter called `consumer group`.
+        packlabel-in-0:
+          # the actual name at the broker that the binder binds to (the exchange in RabbitMQ)
+          destination: order-accepted
+          # the consumer group interested in the destination (same as the application name)
+          group: ${spring.application.name}
+        # the output binding
+        # the output binding will be mapped to an `order-dispatched` exchange in RabbitMQ
+        packlabel-out-0:
+          # the actual name at the broker that the binder binds to (the exchange in RabbitMQ)
+          destination: order-dispatched
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: user
+    password: password
+    connection-timeout: 5s

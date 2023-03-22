@@ -3,6 +3,7 @@ package com.github.sanjayrawat1.bookshop.dispatcher;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.function.Function;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.function.context.FunctionCatalog;
@@ -16,6 +17,7 @@ import reactor.test.StepVerifier;
  * @author Sanjay Singh Rawat
  */
 @FunctionalSpringBootTest
+@Disabled("These tests are only necessary when using the functions alone (no bindings)")
 public class DispatchingFunctionsIntegrationTests {
 
     /**

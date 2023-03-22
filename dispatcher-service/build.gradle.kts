@@ -24,8 +24,10 @@ repositories {
 extra["springCloudVersion"] = "2022.0.1"
 
 dependencies {
-    implementation("org.springframework.boot:spring-boot-starter")
-    implementation("org.springframework.cloud:spring-cloud-function-context")
+    // spring-boot-starter and spring-cloud-function-context dependencies are already included by spring cloud stream.
+    // implementation("org.springframework.boot:spring-boot-starter")
+    // implementation("org.springframework.cloud:spring-cloud-function-context")
+    implementation("org.springframework.cloud:spring-cloud-stream-binder-rabbit")
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
