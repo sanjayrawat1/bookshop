@@ -11,6 +11,12 @@ java.sourceCompatibility = JavaVersion.VERSION_19
 
 description = "Functionality for dispatching orders."
 
+configurations {
+    compileOnly {
+        extendsFrom(configurations.annotationProcessor.get())
+    }
+}
+
 repositories {
     mavenCentral()
 }
@@ -20,6 +26,8 @@ extra["springCloudVersion"] = "2022.0.1"
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("org.springframework.cloud:spring-cloud-function-context")
+    compileOnly("org.projectlombok:lombok")
+    annotationProcessor("org.projectlombok:lombok")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
