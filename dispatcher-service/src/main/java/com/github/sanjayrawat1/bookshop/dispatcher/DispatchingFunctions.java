@@ -4,6 +4,7 @@ import java.util.function.Function;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import reactor.core.publisher.Flux;
 
 /**
  * Functions to perform actions as part of dispatching an order.
@@ -29,5 +30,18 @@ public class DispatchingFunctions {
             log.info("The order with id : {} is packed.", orderAcceptedMessage.orderId());
             return orderAcceptedMessage.orderId();
         };
+    }
+
+    /**
+     * Spring Cloud Function supports both imperative and reactive code, so you're free to implement functions using reactive APIs like Mono and Flux.
+     * You can also mix and match.
+     */
+    @Bean
+    public Function<Flux<Long>, Flux<OrderDispatchedMessage>> label() {
+        return orderFlux ->
+            orderFlux.map(orderId -> {
+                log.info("The order with id {} is labeled.", orderId);
+                return new OrderDispatchedMessage(orderId);
+            });
     }
 }
