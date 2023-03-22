@@ -105,3 +105,28 @@ The two actions to be performed as part of dispatching an order could be represe
 * The **label** function takes the identifier of a packed order as input, labels the order, and returns the order identifier as output, completing the dispatch.
 
 ![](https://github.com/sanjayrawat1/bookshop/dispatcher-service/diagrams/composition-of-pack-and-label-function.drawio.svg)
+
+##### Composing and integrating functions
+We need to compose the two functions, pack() and label(). These two steps to be executed in sequence: pack() first and label() after.
+
+Java provides features to compose Function objects in sequence using the andThen() or compose() operators. The problem is that you can use them only when the
+output type of the first function is the same as the second function’s input. Spring Cloud Function provides a solution to that problem and lets you compose
+functions seamlessly through transparent type conversion, even between imperative and reactive functions.
+
+Composing functions with Spring Cloud is as simple as defining a property in your application.yml
+
+![](https://github.com/sanjayrawat1/bookshop/dispatcher-service/diagrams/spring-cloud-function-composition.drawio.svg)
+
+You can combine functions with different input and output types and mix imperative and reactive types as well. Spring Cloud Function will transparently handle
+any type conversion.
+
+In a serverless application like those meant to be deployed on a FaaS platform (such as AWS Lambda, Azure Functions, Google Cloud Functions, or Knative),
+you would usually have one function defined per application. The cloud function definition can be mapped one-to-one to a function declared in your application,
+or you can use the pipe (|) operator to compose functions together in a data flow. If you need to define multiple functions, you can use the semicolon (;)
+character as the separator instead of the pipe (|).
+
+Once you define the functions, the framework can expose them in different ways depending on your needs. For example, Spring Cloud Function can automatically
+expose the functions defined in `spring.cloud.function.definition` as REST endpoints. Then you can directly package the application, deploy it on a FaaS
+platform like Knative. That's what we'll do when we build serverless applications. Or you can use one of the adapters provided by the framework to package the
+application and deploy it on AWS Lambda, Azure Functions, or Google Cloud Functions. Or you can combine it with Spring Cloud Stream and bind the function to
+message channels in an event broker like RabbitMQ or Kafka.
