@@ -58,12 +58,12 @@ and can be modeled with the pub/sub model.
 Order Service and Dispatcher Service communicate asynchronously and indirectly by producing and consuming events that are collected and distributed by an event
 broker (RabbitMQ).
 
-![](diagrams/async-communication-between-order-and-dispatcher-service.drawio.svg)
+![](https://github.com/sanjayrawat1/bookshop/dispatcher-service/diagrams/async-communication-between-order-and-dispatcher-service.drawio.svg)
 
 RabbitMQ will be the event-processing platform responsible for collecting, routing, and distributing messages to consumers.
 In the Bookshop system, Order Service and Dispatcher Service communicate asynchronously based on events distributed by RabbitMQ.
 
-![](diagrams/bookshop-system-event-driven-part-after-dispatcher-service-and-rabbitmq-introduction.drawio.svg)
+![](https://github.com/sanjayrawat1/bookshop/dispatcher-service/diagrams/bookshop-system-event-driven-part-after-dispatcher-service-and-rabbitmq-introduction.drawio.svg)
 
 When using an AMQP-based solution like RabbitMQ, the actors involved in the interaction can be categorized as follows:
 * **Producer**—The entity sending messages (publisher)
@@ -72,16 +72,36 @@ When using an AMQP-based solution like RabbitMQ, the actors involved in the inte
 
 In AMQP, a broker accepts messages from producers and routes them to consumers.
 
-![](diagrams/interaction-between-amqp-actors.drawio.svg)
+![](https://github.com/sanjayrawat1/bookshop/dispatcher-service/diagrams/interaction-between-amqp-actors.drawio.svg)
 
 The AMQP messaging model is based on exchanges and queues. Producers send messages to an exchange. RabbitMQ computes which queues should receive a copy of the
 message according to a given routing rule. Consumers read messages from a queue.
 Producers publish messages to an exchange. Consumers subscribe to queues. Exchanges route messages to queues according to a routing algorithm.
 
-![](diagrams/amqp-messaging-model.drawio.svg)
+![](https://github.com/sanjayrawat1/bookshop/dispatcher-service/diagrams/amqp-messaging-model.drawio.svg)
 
 The protocol establishes that a message comprises attributes and a payload. AMQP defines some attributes, but you can add your own to pass the information
 that's needed to route the message correctly. The payload must be of a binary type and has no constraints besides that.
 An AMQP Message is composed of attributes and a payload.
 
-![](diagrams/amqp-message.drawio.svg)
+![](https://github.com/sanjayrawat1/bookshop/dispatcher-service/diagrams/amqp-message.drawio.svg)
+
+#### Functions with Spring Cloud Function
+Is there any business feature that you cannot define in terms of suppliers, functions, and consumers? Most software requirements can be expressed with functions.
+Why use functions in the first place? They are a simple, uniform, and portable programming model that is a perfect fit for event-driven architectures,
+inherently based on these concepts. Spring Cloud Function promotes the implementation of business logic via functions based on the standard interfaces
+introduced by Java 8: Supplier, Function, and Consumer.
+
+* **Supplier**—A supplier is a function with only output, no input. It's also known as a producer, publisher, or source.
+* **Function**—A function has both input and output. It's also known as a processor.
+* **Consumer**—A consumer is a function with input but no output. It's also known as a subscriber or sink.
+
+Whenever an order is accepted, Dispatcher Service should be responsible for packing and labeling the order, and for notifying interested parties once the order
+has been dispatched.
+
+The two actions to be performed as part of dispatching an order could be represented as functions:
+
+* The **pack** function takes the identifier of an accepted order as input, packs the order, and returns the order identifier as output, ready to be labeled.
+* The **label** function takes the identifier of a packed order as input, labels the order, and returns the order identifier as output, completing the dispatch.
+
+![](https://github.com/sanjayrawat1/bookshop/dispatcher-service/diagrams/composition-of-pack-and-label-function.drawio.svg)
