@@ -90,3 +90,16 @@ services:
     container_name: "bookshop-redis"
     ports:
       - "6379:6379"
+
+  bookshop-rabbitmq:
+    # the official rabbitmq image with the management plugin enabled
+    image: rabbitmq:3.10-management
+    container_name: bookshop_rabbitmq
+    ports:
+      # the port where rabbitmq listens for AMQP requests
+      - "5672:5672"
+      # the port that exposes the management GUI
+      - "15672:15672"
+    volumes:
+      # configuration file mounted as a volume
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
