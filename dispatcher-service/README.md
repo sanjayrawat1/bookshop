@@ -214,3 +214,7 @@ according to the configured consumer group.")
 
 No queue has been created for the **packlabel-out-0** binding because no consumer subscribed to it. Later you’ll see that a queue will be created after
 configuring Order Service to listen to it.
+
+#### Integration test with a test binder
+The framework provides a binder specifically for implementing integration test focusing on the business logic rather than the middleware. The test binder
+provided by Spring Cloud Stream is mean to verify the correct configuration and integration with a technology-agnostic destination binder.
