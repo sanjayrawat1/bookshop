@@ -15,6 +15,8 @@ jobs:
           catalog-service,
           config-service,
           order-service,
+#          edge-service,
+          dispatcher-service,
         ]
     defaults:
       run:
@@ -75,6 +77,7 @@ jobs:
           config-service,
           order-service,
           edge-service,
+          dispatcher-service,
         ]
     defaults:
       run:
