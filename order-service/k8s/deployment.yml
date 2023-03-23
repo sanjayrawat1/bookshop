@@ -33,3 +33,5 @@ spec:
               value: r2dbc:postgresql://bookshop-postgres/bookshop_order
             - name: SPRING_FLYWAY_URL
               value: jdbc:postgresql://bookshop-postgres/bookshop_order
+            - name: SPRING_RABBITMQ_HOST
+              value: bookshop-rabbitmq
