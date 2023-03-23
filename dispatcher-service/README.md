@@ -58,12 +58,12 @@ and can be modeled with the pub/sub model.
 Order Service and Dispatcher Service communicate asynchronously and indirectly by producing and consuming events that are collected and distributed by an event
 broker (RabbitMQ).
 
-![](https://github.com/sanjayrawat1/bookshop/dispatcher-service/diagrams/async-communication-between-order-and-dispatcher-service.drawio.svg)
+![](https://github.com/sanjayrawat1/bookshop/blob/main/dispatcher-service/diagrams/async-communication-between-order-and-dispatcher-service.drawio.svg)
 
 RabbitMQ will be the event-processing platform responsible for collecting, routing, and distributing messages to consumers.
 In the Bookshop system, Order Service and Dispatcher Service communicate asynchronously based on events distributed by RabbitMQ.
 
-![](https://github.com/sanjayrawat1/bookshop/dispatcher-service/diagrams/bookshop-system-event-driven-part-after-dispatcher-service-and-rabbitmq-introduction.drawio.svg)
+![](https://github.com/sanjayrawat1/bookshop/blob/main/dispatcher-service/diagrams/bookshop-system-event-driven-part-after-dispatcher-service-and-rabbitmq-introduction.drawio.svg)
 
 When using an AMQP-based solution like RabbitMQ, the actors involved in the interaction can be categorized as follows:
 * **Producer**—The entity sending messages (publisher)
@@ -72,19 +72,19 @@ When using an AMQP-based solution like RabbitMQ, the actors involved in the inte
 
 In AMQP, a broker accepts messages from producers and routes them to consumers.
 
-![](https://github.com/sanjayrawat1/bookshop/dispatcher-service/diagrams/interaction-between-amqp-actors.drawio.svg)
+![](https://github.com/sanjayrawat1/bookshop/blob/main/dispatcher-service/diagrams/interaction-between-amqp-actors.drawio.svg)
 
 The AMQP messaging model is based on exchanges and queues. Producers send messages to an exchange. RabbitMQ computes which queues should receive a copy of the
 message according to a given routing rule. Consumers read messages from a queue.
 Producers publish messages to an exchange. Consumers subscribe to queues. Exchanges route messages to queues according to a routing algorithm.
 
-![](https://github.com/sanjayrawat1/bookshop/dispatcher-service/diagrams/amqp-messaging-model.drawio.svg)
+![](https://github.com/sanjayrawat1/bookshop/blob/main/dispatcher-service/diagrams/amqp-messaging-model.drawio.svg)
 
 The protocol establishes that a message comprises attributes and a payload. AMQP defines some attributes, but you can add your own to pass the information
 that's needed to route the message correctly. The payload must be of a binary type and has no constraints besides that.
 An AMQP Message is composed of attributes and a payload.
 
-![](https://github.com/sanjayrawat1/bookshop/dispatcher-service/diagrams/amqp-message.drawio.svg)
+![](https://github.com/sanjayrawat1/bookshop/blob/main/dispatcher-service/diagrams/amqp-message.drawio.svg)
 
 #### Functions with Spring Cloud Function
 Is there any business feature that you cannot define in terms of suppliers, functions, and consumers? Most software requirements can be expressed with functions.
@@ -104,7 +104,7 @@ The two actions to be performed as part of dispatching an order could be represe
 * The **pack** function takes the identifier of an accepted order as input, packs the order, and returns the order identifier as output, ready to be labeled.
 * The **label** function takes the identifier of a packed order as input, labels the order, and returns the order identifier as output, completing the dispatch.
 
-![](https://github.com/sanjayrawat1/bookshop/dispatcher-service/diagrams/composition-of-pack-and-label-function.drawio.svg)
+![](https://github.com/sanjayrawat1/bookshop/blob/main/dispatcher-service/diagrams/composition-of-pack-and-label-function.drawio.svg)
 
 ##### Composing and integrating functions
 We need to compose the two functions, pack() and label(). These two steps to be executed in sequence: pack() first and label() after.
@@ -115,7 +115,7 @@ functions seamlessly through transparent type conversion, even between imperativ
 
 Composing functions with Spring Cloud is as simple as defining a property in your application.yml
 
-![](https://github.com/sanjayrawat1/bookshop/dispatcher-service/diagrams/spring-cloud-function-composition.drawio.svg)
+![](https://github.com/sanjayrawat1/bookshop/blob/main/dispatcher-service/diagrams/spring-cloud-function-composition.drawio.svg)
 
 You can combine functions with different input and output types and mix imperative and reactive types as well. Spring Cloud Function will transparently handle
 any type conversion.
@@ -151,7 +151,7 @@ consumers.
 * **Message** - The data structure used by the application producers and consumers to communicate with the destination binders, and therefore with the external
 messaging system.
 
-![](https://github.com/sanjayrawat1/bookshop/dispatcher-service/diagrams/spring-cloud-stream-application-model.drawio.svg)
+![](https://github.com/sanjayrawat1/bookshop/blob/main/dispatcher-service/diagrams/spring-cloud-stream-application-model.drawio.svg)
 
 In Spring Cloud Stream, a destination binder provides integration with external messaging systems and establishes message channels with them.
 
@@ -165,7 +165,7 @@ A destination binding can be either an input channel or an output channel. By de
 exchange in RabbitMQ (a topic exchange, to be more precise). Furthermore, for each input binding, it binds a queue to the related exchange. That’s the queue
 from which consumers receive and process events.
 
-![](https://github.com/sanjayrawat1/bookshop/dispatcher-service/diagrams/spring-cloud-stream-application-terminology.drawio.svg "In Spring Cloud Stream,
+![](https://github.com/sanjayrawat1/bookshop/blob/main/dispatcher-service/diagrams/spring-cloud-stream-application-terminology.drawio.svg "In Spring Cloud Stream,
 bindings establish message channels between applications and message brokers.")
 
 ##### Understanding Destination Binding
@@ -187,4 +187,30 @@ binding and apply custom configuration. Notice that these names exist only in Sp
 
 ##### Consumer groups ensure that each message is received and processed by only one consumer within the same group.
 
-![](https://github.com/sanjayrawat1/bookshop/dispatcher-service/diagrams/consumer-group-with-spring-cloud-stream-and-rabbitmq.drawio.svg)
+![](https://github.com/sanjayrawat1/bookshop/blob/main/dispatcher-service/diagrams/consumer-group-with-spring-cloud-stream-and-rabbitmq.drawio.svg)
+
+#### Exploring Exchanges and Queues in RabbitMQ
+First, start the RabbitMQ container, navigate to the folder in bookshop-deployment where you keep docker-compose.yml file and run the following command:
+
+`$ docker-compose up -d bookshop-rabbitmq`
+
+Then run the dispatcher-service application:
+
+`$ ./gradlew bootRun`
+
+Open browser and navigate to http://localhost:15672. The credentials are the same that we defined in docker compose (user/password). Then go to the **Exchange**
+section. You will see a list of default exchanges provided by RabbitMQ and the two exchanges generated by our application: **order-accepted** and
+**order-dispatched**. They are mapped to the **packlabel-in-0** and **packlabel-out-0** bindings respectively by Spring Cloud Stream.
+The exchanges are durable (denoted by the D icon in the management console), meaning that they will survive a broker restart.
+
+![](https://github.com/sanjayrawat1/bookshop/blob/main/dispatcher-service/diagrams/rabbitmq-exchanges.png "Spring Cloud Stream maps the two destination binding to two
+exchanges in RabbitMQ.")
+
+In Dispatcher Service we configured a **packlabel-in-0** binding and a consumer group. That’s the only input channel for the application, so it should result
+in a single queue. You can see a durable **order-accepted.dispatcher-service** queue in the Queues section.
+
+![](https://github.com/sanjayrawat1/bookshop/blob/main/dispatcher-service/diagrams/rabbitmq-queues.png "Spring Cloud Stream maps each input binding to a queue, named
+according to the configured consumer group.")
+
+No queue has been created for the **packlabel-out-0** binding because no consumer subscribed to it. Later you’ll see that a queue will be created after
+configuring Order Service to listen to it.
