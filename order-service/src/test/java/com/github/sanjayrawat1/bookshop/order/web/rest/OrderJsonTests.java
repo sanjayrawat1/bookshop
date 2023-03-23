@@ -1,4 +1,4 @@
-package com.github.sanjayrawat1.bookshop.order.wrb.rest;
+package com.github.sanjayrawat1.bookshop.order.web.rest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

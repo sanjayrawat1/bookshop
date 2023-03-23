@@ -1,4 +1,4 @@
-package com.github.sanjayrawat1.bookshop.order.wrb.rest;
+package com.github.sanjayrawat1.bookshop.order.web.rest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
@@ -6,8 +6,6 @@ import static org.mockito.BDDMockito.given;
 import com.github.sanjayrawat1.bookshop.order.domain.Order;
 import com.github.sanjayrawat1.bookshop.order.domain.OrderService;
 import com.github.sanjayrawat1.bookshop.order.domain.OrderStatus;
-import com.github.sanjayrawat1.bookshop.order.web.rest.OrderController;
-import com.github.sanjayrawat1.bookshop.order.web.rest.OrderRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
