@@ -42,4 +42,17 @@ kubectl wait \
   --selector=db=bookshop-redis \
   --timeout=180s
 
+echo "\n⌛ Waiting for RabbitMQ to be deployed..."
+
+while [ $(kubectl get pod -l db=bookshop-rabbitmq | wc -l) -eq 0 ] ; do
+  sleep 5
+done
+
+echo "\n⌛ Waiting for RabbitMQ to be ready..."
+
+kubectl wait \
+  --for=condition=ready pod \
+  --selector=db=bookshop-rabbitmq \
+  --timeout=180s
+
 echo "\n⛵ Happy Sailing!\n"
