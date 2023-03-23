@@ -54,6 +54,23 @@ spring:
         max-interval: 2000 # 2s
         # Multiplier to compute the next interval.
         multiplier: 1.1
+    function:
+      # definition of the function managed by the Spring Cloud Function
+      definition: dispatchOrder
+    stream:
+      bindings:
+        # the input binding
+        dispatchOrder-in-0:
+          # the actual name at the broker that the binder binds to (the exchange in RabbitMQ)
+          destination: order-dispatched
+          # the consumer group interested in the destination
+          group: ${spring.application.name}
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: user
+    password: password
+    connection-timeout: 5s
 
 bookshop:
   greeting: Welcome to the local book order!

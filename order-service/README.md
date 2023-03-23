@@ -111,3 +111,15 @@ In a real-world scenario, you would probably want to return some contextual info
 object. For example, you could add a reason field to the Order object to describe why it's been rejected. Was it because the book is unavailable in the catalog
 or because of network problems? In the second case, you could inform the user that the order cannot be processed because it's momentarily unable to check the
 book's availability. A better option would be to save the order in a pending state, queue the order submission request, and try it again later.
+
+#### Producing and consuming message with Spring Cloud Stream
+##### Implementing event consumers and the problem of idempotency
+Dispatcher service produces message when orders are dispatched, the order service should be notified when that happens so that it can update the order status
+in the database.
+We will use a Consumer object, responsible for listening to the incoming message and updating the database entities. Consumer objects are functions with input
+but no output. Functions and Consumers are naturally activated.
+
+We need to configure Spring Cloud Stream in the application.yml file so that the `dispatchOrder-in-0` binding (inferred from the dispatchOrder function name) is
+mapped to the `order-dispatched` exchange in RabbitMQ. Also, define `dispatchOrder` as the function that Spring Cloud Function should manage and integrate with
+RabbitMQ. The consumers in Order Service will be part of the order-service consumer group, and Spring Cloud Stream will define a message channel between them
+and an `order-dispatched.order-service` queue in RabbitMQ.
