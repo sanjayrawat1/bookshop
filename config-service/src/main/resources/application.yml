@@ -21,10 +21,11 @@ spring:
           # The server searches for config files in the top level and in `config-repo/` subdirectory.
           # Every repository can also optionally store config files in subdirectories, and patterns to search for those directories can be specified as below:
           # Below are the search-paths value for differently organized folder structure:
-          # /{application}/application.yml or /{application}/application-{profile}.yml -> config-repo/**
+          # /{application}/application.yml or /{application}/application-{profile}.yml -> config-repo/{application}
           # /{application}.yml or /{application}-{profile}.yml -> config-repo
           search-paths:
-            - config-repo/**
+            - config-repo
+            - config-repo/{application}
           # By default, the server will return the configuration data from the "main" branch.
           default-label: main
           # Time limit to establish a connection with the remote repository.
