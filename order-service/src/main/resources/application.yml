@@ -65,6 +65,18 @@ spring:
           destination: order-dispatched
           # the consumer group interested in the destination
           group: ${spring.application.name}
+        # output binding created and managed by StreamBridge
+        acceptOrder-out-0:
+          # the actual name at the broker that the binder binds to (the exchange in RabbitMQ)
+          destination: order-accepted
+      # RabbitMQ specific configuration for the Spring Cloud Stream bindings
+      rabbit:
+        bindings:
+          # configure the output binding to be transactional
+          acceptOrder-out-0:
+            producer:
+              # make the acceptOrder-out-0 binding transactional
+              transacted: true
   rabbitmq:
     host: localhost
     port: 5672

@@ -123,3 +123,26 @@ We need to configure Spring Cloud Stream in the application.yml file so that the
 mapped to the `order-dispatched` exchange in RabbitMQ. Also, define `dispatchOrder` as the function that Spring Cloud Function should manage and integrate with
 RabbitMQ. The consumers in Order Service will be part of the order-service consumer group, and Spring Cloud Stream will define a message channel between them
 and an `order-dispatched.order-service` queue in RabbitMQ.
+
+##### Implement event producers and the problem of atomicity
+Suppliers are message sources. They produce messages when an event happens. A supplier should notify the interested parties whenever an order has been accepted.
+Unlike functions and consumers, suppliers need to be activated. They act only upon invocation.
+
+Spring Cloud Stream provides a few ways to define suppliers and cover different scenarios. In order-service, the event source is not a message broker, but a
+REST endpoint. When a user sends a POST request to Order Service for purchasing a book, we want to publish an event signaling whether the order has been
+accepted.
+
+We can bridge the REST layer with the stream part of the application using a **StreamBridge** object that allows us to send data to a specific destination
+imperatively.
+
+Since the data source is a REST endpoint, there is no Supplier bean we can register with Spring Cloud Function, and therefore there is no trigger for the
+framework to create the necessary bindings with RabbitMQ. There is no acceptOrder function! At startup time, Spring Cloud Stream will notice that StreamBridge
+wants to publish messages via an acceptOrder-out-0 binding, and it will create one automatically. Similar to the bindings created from functions, we can
+configure the destination name in RabbitMQ.
+
+To ensure consistency in your system, persisting an order in the database and sending a message about it must be done atomically. Either both operations
+succeed, or they both must fail. A simple yet effective way to ensure atomicity is by wrapping the two operations in a local transaction.
+
+Spring Boot comes preconfigured with transaction management functionality and can handle transactional operations involving relational databases. However, the
+channel established with RabbitMQ for the message producer is not transactional by default. To make the event-publishing operation join the existing
+transaction, we need to enable RabbitMQ’s transactional support for the message producer in the `application.yml` file.

@@ -2,10 +2,13 @@ package com.github.sanjayrawat1.bookshop.order.domain;
 
 import com.github.sanjayrawat1.bookshop.order.book.Book;
 import com.github.sanjayrawat1.bookshop.order.book.BookClient;
+import com.github.sanjayrawat1.bookshop.order.event.OrderAcceptedMessage;
 import com.github.sanjayrawat1.bookshop.order.event.OrderDispatchedMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -23,16 +26,20 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
 
+    private final StreamBridge streamBridge;
+
     public Flux<Order> getAllOrders() {
         return orderRepository.findAll();
     }
 
+    @Transactional
     public Mono<Order> submitOrder(String isbn, int quantity) {
         return bookClient
             .getBookByIsbn(isbn)
             .map(book -> buildAcceptedOrder(book, quantity))
             .defaultIfEmpty(buildRejectedOrder(isbn, quantity))
-            .flatMap(orderRepository::save);
+            .flatMap(orderRepository::save)
+            .doOnNext(this::publishOrderAcceptedEvent);
     }
 
     public static Order buildRejectedOrder(String bookIsbn, int quantity) {
@@ -74,5 +81,16 @@ public class OrderService {
             existingOrder.lastModifiedDate(),
             existingOrder.version()
         );
+    }
+
+    private void publishOrderAcceptedEvent(Order order) {
+        if (!order.status().equals(OrderStatus.ACCEPTED)) {
+            return;
+        }
+        var orderAcceptedMessage = new OrderAcceptedMessage(order.id());
+        log.info("Sending order accepted event with id {}", order.id());
+        // explicitly sends a message to the acceptOrder-out-0 binding
+        var result = streamBridge.send("acceptOrder-out-0", orderAcceptedMessage);
+        log.info("Result of sending data for order with id {} : {}", order.id(), result);
     }
 }
