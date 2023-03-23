@@ -1,10 +1,38 @@
 server:
   port: 9003
 
+management:
+  endpoints:
+    web:
+      base-path: /management
+      exposure:
+        include: refresh
+
 spring:
   application:
     name: dispatcher-service
+  config:
+    # Imports configuration data from a config server when available.
+    import: "optional:configserver:"
   cloud:
+    config:
+      # The URL of the config server.
+      uri: http://localhost:8888
+      # Timeout on waiting to connect to the config server (ms).
+      request-connect-timeout: 5000 # 5s
+      # Timeout on waiting to read configuration data from the config server (ms).
+      request-read-timeout: 5000 # 5s
+      # Makes a failure to connect to the config server fatal.
+      fail-fast: false # In production, set to true
+      retry:
+        # Maximum number of attempts.
+        max-attempts: 6
+        # Initial retry interval for backoff (ms).
+        initial-interval: 1000 # 1s
+        # Maximum retry interval for backoff (ms).
+        max-interval: 2000 # 2s
+        # Multiplier to compute the next interval.
+        multiplier: 1.1
     function:
       # definition of the function managed by Spring Cloud Function.
       # this property lets you declare which functions you want Spring Cloud Function to manage and integrate, resulting in a specific data flow.
@@ -32,3 +60,6 @@ spring:
     username: user
     password: password
     connection-timeout: 5s
+
+bookshop:
+  greeting: Welcome to the local bookshop dispatcher!
