@@ -472,3 +472,6 @@ where Spring Security stores the ID Token. In turn, **Authentication** is saved 
 The main classes used to store information about the currently authenticated user:
 
 ![](https://github.com/sanjayrawat1/bookshop/blob/main/edge-service/diagrams/security-context-structure-for-oidc-authentication.drawio.svg)
+
+Besides using **ReactiveSecurityContextHolder** directly, we can use the annotations **@CurrentSecurityContext** and **@AuthenticationPrincipal** to inject the
+**SecurityContext** and the principal (in this case, **OidcUser**) respectively.
