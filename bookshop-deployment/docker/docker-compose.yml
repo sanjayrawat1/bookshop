@@ -120,3 +120,14 @@ services:
     volumes:
       # configuration file mounted as a volume
       - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+
+  bookshop-keycloak:
+    image: quay.io/keycloak/keycloak:21.0.1
+    container_name: bookshop-keycloak
+    # starts keycloak in development mode (using an embedded database)
+    command: start-dev
+    environment:
+      - KEYCLOAK_ADMIN=user
+      - KEYCLOAK_ADMIN_PASSWORD=password
+    ports:
+      - "8080:8080"
