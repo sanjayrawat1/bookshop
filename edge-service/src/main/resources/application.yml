@@ -117,6 +117,24 @@ spring:
     redis:
       # Unique namespace to prefix all session data coming from Edge Service
       namespace: bookshop:edge
+  security:
+    oauth2:
+      client:
+        registration:
+          # the name identifying the client registration in spring security (called registrationId). It can be any string.
+          keycloak:
+            # the OAuth2 client identifier as defined in Keycloak
+            client-id: edge-service
+            # the shared secret used by the client to authenticate with Keycloak
+            client-secret: bookshop-keycloak-secret
+            # the list of scopes the client would like to have access to.
+            # the openid scope triggers OIDC authentication on top of OAuth2
+            scope: openid
+        provider:
+          # the same name used as registrationId
+          keycloak:
+            # the Keycloak URL providing information about all the relevant OAuth2 and OIDC endpoints for the specific realm
+            issuer-uri: http://localhost:8080/realms/Bookshop
 
 resilience4j:
   circuitbreaker:

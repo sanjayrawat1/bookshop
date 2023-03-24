@@ -428,3 +428,36 @@ which Keycloak is authorized to redirect a request after a user login or logout.
 
 You can use a JSON file to load the entire configuration when starting up the Keycloak container. You can find out the keycloak realm config file in
 bookshop-deployment repo under docker folder.
+
+#### Authenticating users with Spring Security and OpenID Connect
+##### Configuring the integration between Spring Security and Keycloak
+After adding the relevant dependencies on Spring Security, we need to configure the integration with Keycloak.
+
+Each Client registration in Spring Security must have an identifier (registrationId). In this example, it's **keycloak**. The registration identifier is used
+to build the URL where Spring Security receives the Authorization Code from Keycloak. The default URL template is /login/oauth2/code/{registrationId}. For
+Edge Service, the full URL is http://localhost:9000/login/oauth2/code/keycloak, which we already configured in Keycloak as a valid redirect URL.
+
+**Scopes** are an OAuth2 concept for limiting an application's access to user resources. You can think of them as roles, but for applications instead of users.
+When we use the OpenID Connect extension on top of OAuth2 to verify the user's identity, we need to include the **openid** scope to inform the Authorization
+Server and receive an ID Token containing data about the user authentication.
+
+The ServerHttpSecurity object provides two ways of configuring an OAuth2 Client in Spring Security. With **oauth2Login()**, you can configure an application to
+act as an OAuth2 Client and also authenticate users through OpenID Connect. With **oauth2Client()**, the application will not authenticate users. We want to use
+OIDC authentication, so we'll use **oauth2Login()**.
+
+After adding SecurityConfiguration, first, start the Redis and Keycloak container:
+
+`$ docker-compose up -d bookshop-redis bookshop-keycloak`
+
+Then run the edge service application:
+
+`$ ./gradlew bootRun`
+
+Open a browser window, and head to http://localhost:9000. You should be redirected to a login page served by Keycloak, where you can authenticate as one of the
+users we created previously.
+
+The Keycloak login page for the Polar Bookshop realm, shown after Edge Service triggered the OIDC authentication flow.
+
+![](https://github.com/sanjayrawat1/bookshop/blob/main/edge-service/diagrams/keycloak-login-page-for-bookshop-realm.png)
+
+If the authentication is successful, Spring Security will start an authenticated session with the browser and save information about the user.
