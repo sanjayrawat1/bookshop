@@ -177,7 +177,7 @@ actual component that enforces those rules and routes traffic from outside the c
 Ingress controllers are applications that are usually built using reverse proxies like NGINX, HAProxy, or Envoy. Some examples are Ambassador Emissary, Contour,
 and Ingress NGINX.
 
-In our local environment, we'll need some additional configuration to make the routing work. For the Polar Bookshop example, we'll use Ingress NGINX
+In our local environment, we'll need some additional configuration to make the routing work. For the Bookshop example, we'll use Ingress NGINX
 (https://github.com/kubernetes/ingress-nginx) in both environments.
 
 Since we use minikube to manage a local Kubernetes cluster, we can rely on a built-in add-on to enable the Ingress functionality based on Ingress NGINX.
@@ -201,7 +201,7 @@ We use namespaces to keep our clusters organized and define network policies to 
 with the default namespace, and we'll keep doing that for all our Bookshop applications. However, when it comes to platform services such as Ingress NGINX,
 we'll rely on dedicated namespaces to keep those resources isolated.
 
-Navigate to the kubernetes/platform/development folder located in your polar-deployment repository, and run following command to deploy PostgreSQL and Redis in
+Navigate to the kubernetes/platform/development folder located in your bookshop-deployment repository, and run following command to deploy PostgreSQL and Redis in
 your local cluster:
 
 `$ kubectl apply -f services`
@@ -219,7 +219,7 @@ Edge Service takes care of application routing, but it should not be concerned w
 resource, we can decouple the two responsibilities. Developers would maintain Edge Service, while the platform team would manage the ingress controller and the
 network configuration (perhaps relying on a service mesh like Linkerd or Istio).
 
-##### The deployment architecture of the Polar Bookshop system after introducing an Ingress to manage external access to the cluster
+##### The deployment architecture of the Bookshop system after introducing an Ingress to manage external access to the cluster
 
 ![](https://github.com/sanjayrawat1/bookshop/blob/main/edge-service/diagrams/deployment-architecture-of-bookshop-after-introducing-ingress.drawio.svg)
 
@@ -227,10 +227,10 @@ It's common to define Ingress routes and configurations based on the DNS name us
 don’t have a DNS name, we can call the external IP address provisioned for the Ingress to be accessible from outside the cluster. On Linux, you can use the IP
 address assigned to the minikube cluster. You can retrieve that value by running the following command:
 
-`$ minikube ip --profile polar`
+`$ minikube ip --profile bookshop`
 
 On macOS and Windows, the ingress add-on doesn't yet support using the minikube cluster's IP address when running on Docker. Instead, we need to use the
-**minikube tunnel --profile polar** command to expose the cluster to the local environment, and then use the 127.0.0.1 IP address to call the cluster. This is
+**minikube tunnel --profile bookshop** command to expose the cluster to the local environment, and then use the 127.0.0.1 IP address to call the cluster. This is
 similar to the kubectl port-forward command, but it applies to the whole cluster instead of a specific service.
 
 Define the Ingress object in **ingress.yml** file in **k8s** folder. After this deploy edge-service and ingress to local k8s cluster, run following command:
@@ -252,6 +252,179 @@ Finally, test the application:
 
 When you are done trying out the deployment, you can stop and delete the local Kubernetes cluster with the following commands:
 
-`$ minikube stop --profile polar`
+`$ minikube stop --profile bookshop`
 
-`$ minikube delete --profile polar`
+`$ minikube delete --profile bookshop`
+
+### Security: Authentication and SPA
+Security is one of the most critical aspects of web applications and probably the one with the most catastrophic effects when done wrong. Consider security
+from the beginning of each new project or feature and never letting it go until the application is retired.
+
+Access control systems allow users access to resources only when their identity has been proven, and they have the required permissions. To accomplish that,
+we need to follow three pivotal steps: identification, authentication, and authorization.
+
+* **Identification** happens when a user (human or machine) claims an identity. In the physical world, that's when I introduce myself by stating my name. In the
+digital world, I would do that by providing my username or email address.
+* **Authentication** is about verifying the user's claimed identity through factors like a passport, a driver's license, a password, a certificate, or a token.
+When multiple factors are used to verify the user's identity, we talk about multi-factor authentication.
+* **Authorization** always happens after authentication, and it checks what the user is allowed to do in a given context.
+
+##### Understanding the Spring Security fundamentals
+Spring Security is the de facto standard for securing Spring applications, supporting imperative and reactive stacks. It provides authentication and
+authorization features as well as protection against the most common attacks. The framework provides its main functionality by relying on **filters**. Let's
+consider a possible requirement for adding authentication to a Spring Boot application. Users should be able to authenticate with their username and password
+through a login form. When we configure Spring Security to enable such a feature, the framework adds a filter that intercepts any incoming HTTP request. If the
+user is already authenticated, it sends the request through to be processed by a given web handler, such as a **@RestController** class. If the user is not
+authenticated, it forwards the user to a login page and prompts for their username and password.
+
+The filter that handles authentication runs before the one that checks for authorization because we can't verify a user's authority before knowing who it is.
+
+The central place for defining and configuring security policies in Spring Security is a **SecurityWebFilterChain** bean. That object tells the framework which
+filters should be enabled. You can build a SecurityWebFilterChain bean through the DSL provided by **ServerHttpSecurity**.
+
+Spring Security provides several authentication strategies, including HTTP Basic, login form, SAML, and OpenID Connect.
+
+#### Managing user accounts with Keycloak
+Keycloak (www.keycloak.org) is an open source identity and access management solution developed and maintained by the Red Hat community. It offers a broad set
+of features, including single sign-on (SSO), social login, user federation, multi-factor authentication, and centralized user management. Keycloak relies on
+standards like OAuth2, OpenID Connect, and SAML 2.0.
+
+You can run Keycloak locally as a standalone Java application or a container. For production, there are a few solutions for running Keycloak on Kubernetes.
+Keycloak also needs a relational database for persistence. It comes with an embedded H2 database, but you'll want to replace it with an external one in
+production.
+
+You can start Keycloak container by navigating to bookshop-deployment/docker folder, and running below command:
+
+`$ docker-compose up -d bookshop-keycloak`
+
+Before we can start managing user accounts, we need to define security realm.
+
+##### Defining a security realm
+In Keycloak, any security aspect of an application or a system is defined in the context of a realm, a logical domain in which we apply specific security
+policies. By default, Keycloak comes preconfigured with a Master realm, but you'll probably want to create a dedicated one for each product you build. Let's
+create a new Bookshop realm to host any security-related aspects of the Bookshop system.
+
+Make sure the Keycloak container is running. Then enter a bash console inside the Keycloak container:
+
+`$ docker exec -it bookshop-keycloak bash`
+
+We will configure the Keycloak through its **Admin CLI**, but same can be achieved by using the GUI available at http://localhost:8080.
+Navigate to the folder where the Keycloak Admin CLI scripts are located:
+
+`$ cd /opt/keycloak/bin`
+
+The Admin CLI is protected by the username and password we defined in Docker Compose for the Keycloak container. We'll need to start an authenticated session
+before running any other commands:
+
+`$ ./kcadm.sh config credentials --server http://localhost:8080 --realm master --user user --password password`
+
+After successful authentication, create a new security realm where all the policies associated with Bookshop will be stored.
+
+`$ ./kcadm.sh create realms -s realm=Bookshop -s enabled=true`
+
+##### Managing users and roles
+Bookshop has two types of users: customers and employees.
+
+* Customers can browse books and purchase them.
+* Employees can also add new books to the catalog, modify the existing ones, and delete them.
+
+To manage the different permissions associated with each type of user, let's create two roles: customer and employee. Later you'll protect application
+endpoints based on those roles. It's an authorization strategy called role-based access control (RBAC).
+
+`$ ./kcadm.sh create roles -r Bookshop -s name=employee`
+`$ ./kcadm.sh create roles -r Bookshop -s name=customer`
+
+Then create user.
+
+`$ ./kcadm.sh create users -r Bookshop -s username=sanjay -s firstName=Sanjay -s lastName=Rawat -s enabled=true`
+
+`$ ./kcadm.sh add-roles -r Bookshop --uusername sanjay --rolename employee --rolename customer`
+
+Then set the password
+
+`“$ ./kcadm.sh set-password -r Bookshop --username sanjay --new-password password`
+
+#### Authentication with OpenID Connect, JWT, and Keycloak
+Since Keycloak now manages user accounts, we could go ahead and update Edge Service to check the user credentials with Keycloak itself, rather than using its
+internal storage. But what happens if we introduce different clients to the Bookshop system, such as mobile applications and IoT devices? How should the
+users authenticate then? What if the bookshop employees are already registered in the company’s Active Directory (AD) and want to log in via SAML? Can we
+provide a single sign-on (SSO) experience across different applications? Will the users be able to log in via their GitHub or Twitter accounts (social login)?
+
+We could think of supporting all those authentication strategies in Edge Service as we get new requirements. However, that is not a scalable approach. A better
+solution is delegating a dedicated identity provider to authenticate users following any supported strategy. Edge Service would then use that service to verify
+the identity of a user without being concerned about performing the actual authentication step. The dedicated service could let users authenticate in various
+ways, such as using the credentials registered in the system, through social login, or via SAML to rely on the identity defined in the company's AD
+
+##### Authenticating users with OpenID Connect
+OpenID Connect (OIDC) is a protocol that enables an application (called the Client) to verify the identity of a user based on the authentication performed by a
+trusted party (called an Authorization Server) and retrieve the user profile information. The authorization server informs the Client application about the
+result of the authentication step via an ID Token.
+OIDC is an identity layer on top of OAuth2, an authorization framework that solves the problem of delegating access using tokens for authorization but doesn't
+deal with authentication. As you know, authorization can only happen after authentication.
+
+When it comes to handling user authentication, we can identify three main actors in the OAuth2 framework that are used by the OIDC protocol:
+
+* **Authorization Server** — The entity responsible for authenticating users and issuing tokens. In Bookshop, this will be Keycloak.
+* **User** — Also called the Resource Owner, this is the human logging in with the Authorization Server to get authenticated access to the Client application.
+In Bookshop, it's either a customer or an employee.
+* **Client** — The application requiring the user to be authenticated. This can be a mobile application, a browser-based application, a server-side application,
+or even a smart TV application. In Bookshop, it's Edge Service.
+
+![](https://github.com/sanjayrawat1/bookshop/blob/main/edge-service/diagrams/oidc-oatuh2-roles-in-bookshop-architecture.drawio.svg)
+
+When an unauthenticated user calls a secure endpoint exposed by Edge Service, the following happens:
+
+1. Edge Service (the Client) redirects the browser to Keycloak (the Authorization Server) for authentication.
+2. Keycloak authenticates the user (for example, by asking for a username and password via a login form) and then redirects the browser back to Edge Service,
+together with an Authorization Code.
+3. Edge Service calls Keycloak to exchange the Authorization Code with an ID Token, containing information about the authenticated user.
+4. Edge Service initializes an authenticated user session with the browser based on a session cookie. Internally, Edge Service maintains a mapping between the
+session identifier and ID Token (the user identity).
+
+##### The authentication flow supported by the OIDC protocol
+
+![](https://github.com/sanjayrawat1/bookshop/blob/main/edge-service/diagrams/authentication-flow-with-oidc.drawio.svg)
+
+##### Exchanging user information with JWT
+In distributed systems, including microservices and cloud native applications, the most-used strategy for exchanging information about an authenticated user
+and their authorization is through tokens.
+
+JSON Web Token (JWT) is an industry-standard for representing claims to be transferred between two parties. It's a widely used format for propagating
+information about an authenticated user and their permissions securely among different parties in a distributed system. A JWT is not used by itself, but it's
+included in a larger structure, the JSON Web Signature (JWS), which ensures the integrity of the claims by digitally signing the JWT object.
+
+A digitally signed JWT (JWS) is a string composed of three parts encoded in Base64 and separated by a dot (.) character:
+
+`<header>.<payload>.<signature>`
+
+A digitally signed JWT has three parts:
+
+* **Header** — A JSON object (called JOSE Header) containing information about the cryptographic operations performed on the payload.
+* **Payload** — A JSON object (called Claims Set) containing the claims conveyed by the token.
+* **Signature** — The signature of the JWT, ensuring that the claims have not been tampered with. A prerequisite of using a JWS structure is that we trust the
+entity issuing the token (the issuer), and we have a way to check its validity.
+
+##### Registering an application in Keycloak
+An OAuth2 Client is an application that can request user authentication and ultimately receive tokens from an Authorization Server. In the Bookshop
+architecture, this role is played by Edge Service. When using OIDC/OAuth2, you need to register each OAuth2 Client with the Authorization Server before using
+it for authenticating users.
+
+Clients can be public or confidential. We register an application as a public Client if it can't keep a secret. For example, mobile applications would be
+registered as public Clients. On the other hand, confidential Clients are those that can keep a secret, and they are usually backend applications like
+Edge Service. The registration process is similar either way. The main difference is that confidential Clients are required to authenticate themselves with the
+Authorization Server, such as by relying on a shared secret. It's an additional protection layer we can't use for public Clients, since they have no way to
+store the shared secret securely.
+
+Rule of thumb. If the frontend is a mobile or desktop application like iOS or Android, that will be the OAuth2 Client, and it will be categorized as a public
+Client. You can use libraries like AppAuth (https://appauth.io) to add support for OIDC/ OAuth2 and store the tokens as securely as possible on the device. If
+the frontend is a web application, then a backend service should be the Client. In this case, it would be categorized as a confidential Client.
+
+Register Edge Service as an OAuth2 Client in the Bookshop realm:
+
+`$ ./kcadm.sh create clients -r Bookshop -s clientId=edge-service -s enabled=true -s publicClient=false -s secret=bookshop-keycloak-secret -s 'redirectUris=["http://localhost:9000", "http://localhost:9000/login/oauth2/code/*"]'`
+
+Edge Service is a confidential client, not public. Since it's a confidential client, it needs a secret to authenticate with Keycloak. The application URLs to
+which Keycloak is authorized to redirect a request after a user login or logout.
+
+You can use a JSON file to load the entire configuration when starting up the Keycloak container. You can find out the keycloak realm config file in
+bookshop-deployment repo under docker folder.
