@@ -488,3 +488,14 @@ session data and are therefore stored in Redis automatically, making it possible
 Another option for retrieving the currently authenticated user (the principal) is from the context associated with a specific HTTP request (called the exchange).
 We'll use that option to update the rate limiter configuration. We implemented rate-limiting with Spring Cloud Gateway and Redis. Currently, the rate-limiting
 is computed based on the total number of requests received every second. We should update it to apply the rate limits to each user independently.
+
+##### Configuring user logout in Spring Security and Keycloak
+When OpenID Connect/OAuth2 is used, the tokens stored by Spring Security for that user are also deleted. However, the user will still have an active session in
+Keycloak. Just as the authentication process involves both Keycloak and Edge Service, completely logging a user out requires propagating the logout request to
+both components. By default, a logout performed against an application protected by Spring Security will not affect Keycloak. Fortunately, Spring Security
+provides an implementation of the **OpenID Connect RP-Initiated Logout** specification, which defines how a logout request should be propagated from an OAuth2
+Client (the Relying Party) to the Authorization Server.
+
+When a user logs out, the request is processed by Spring Security first, then forwarded to Keycloak, and the user is finally redirected to the application.
+
+![](https://github.com/sanjayrawat1/bookshop/blob/main/edge-service/diagrams/logout-flow-with-oidc.drawio.svg)
