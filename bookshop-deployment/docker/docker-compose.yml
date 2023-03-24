@@ -125,7 +125,11 @@ services:
     image: quay.io/keycloak/keycloak:21.0.1
     container_name: bookshop-keycloak
     # starts keycloak in development mode (using an embedded database)
-    command: start-dev
+    ## --import-realm -> imports the provided configuration at startup time
+    command: start-dev --import-realm
+    # configures a volume to load the configuration file into the container
+    volumes:
+      - ./keycloak:/opt/keycloak/data/import
     environment:
       - KEYCLOAK_ADMIN=user
       - KEYCLOAK_ADMIN_PASSWORD=password
