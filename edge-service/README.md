@@ -461,3 +461,14 @@ The Keycloak login page for the Polar Bookshop realm, shown after Edge Service t
 ![](https://github.com/sanjayrawat1/bookshop/blob/main/edge-service/diagrams/keycloak-login-page-for-bookshop-realm.png)
 
 If the authentication is successful, Spring Security will start an authenticated session with the browser and save information about the user.
+
+##### Inspecting the authenticated user context
+As part of the authentication process, Spring Security defines a context to hold information about the user and map a user session to an ID Token.
+
+Independent of the authentication strategy adopted (whether username/password, OpenID Connect/OAuth2, or SAML2), Spring Security keeps the information about an
+authenticated user (also called the principal) in an **Authentication** object. In the case of OIDC, the principal object is of type **OidcUser**, and it's
+where Spring Security stores the ID Token. In turn, **Authentication** is saved in a **SecurityContext** object.
+
+The main classes used to store information about the currently authenticated user:
+
+![](https://github.com/sanjayrawat1/bookshop/blob/main/edge-service/diagrams/security-context-structure-for-oidc-authentication.drawio.svg)
