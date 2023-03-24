@@ -1,9 +1,9 @@
 package com.github.sanjayrawat1.bookshop.edgeservice.config;
 
+import java.security.Principal;
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import reactor.core.publisher.Mono;
 
 /**
  * Rate Limiter Configuration.
@@ -15,13 +15,13 @@ public class RateLimiterConfiguration {
 
     /**
      * The RequestRateLimiter filter relies on KeyResolver bean to determine which bucket to use for each request.
-     * By default, it uses the currently authenticated user in Spring Security. Until we add security, we will return
-     * a constant value so that all requests will be mapped to the same bucket.
+     * By default, it uses the currently authenticated user in Spring Security. If no user is defined, use default
+     * key to apply rate-limiting to all unauthenticated requests.
      *
      * @return bucket key resolver.
      */
     @Bean
     public KeyResolver keyResolver() {
-        return exchange -> Mono.just("anonymous");
+        return exchange -> exchange.getPrincipal().map(Principal::getName).defaultIfEmpty("anonymous");
     }
 }
