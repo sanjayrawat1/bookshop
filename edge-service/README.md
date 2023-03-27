@@ -456,7 +456,7 @@ Then run the edge service application:
 Open a browser window, and head to http://localhost:9000. You should be redirected to a login page served by Keycloak, where you can authenticate as one of the
 users we created previously.
 
-The Keycloak login page for the Polar Bookshop realm, shown after Edge Service triggered the OIDC authentication flow.
+The Keycloak login page for the Bookshop realm, shown after Edge Service triggered the OIDC authentication flow.
 
 ![](https://github.com/sanjayrawat1/bookshop/blob/main/edge-service/diagrams/keycloak-login-page-for-bookshop-realm.png)
 
@@ -499,3 +499,34 @@ Client (the Relying Party) to the Authorization Server.
 When a user logs out, the request is processed by Spring Security first, then forwarded to Keycloak, and the user is finally redirected to the application.
 
 ![](https://github.com/sanjayrawat1/bookshop/blob/main/edge-service/diagrams/logout-flow-with-oidc.drawio.svg)
+
+#### Integrating Spring Security with SPAs
+The web frontend part of microservice architectures and other distributed systems is often built as one or more single-page applications using frameworks like
+Angular, React, or Vue.
+
+We will use an Angular application that will be served by an NGINX container and be accessible via the gateway provided by Edge Service. Supporting and SPA
+will require some additional configuration in Spring Security to address concerns like Cross-Origin Request Sharing (CORS) and Cross-Site Request Forgery
+(CSRF).
+
+We don’t want the Angular application to be accessible directly from the outside. Instead, we want to make it accessible via the gateway provided by Edge
+Service. We can do that by adding a new route for Spring Cloud Gateway to forward any requests for static resources to the Bookshop UI application.
+
+If you're not authenticated yet, or your session has expired, Spring Security will automatically trigger the authentication flow and redirect your browser to
+Keycloak. With a single-page application, things work a bit differently. The Angular application is returned by the backend when accessing the root endpoint
+through a standard HTTP GET request performed by the browser. After that, the SPA interacts with the backend through AJAX requests. When the SPA sends an
+unauthenticated AJAX request to a protected endpoint, you don't want Spring Security to reply with an HTTP 302 response redirecting to Keycloak. Instead, you
+want it to return a response with an error status like HTTP 401 Unauthorized.
+
+The main reason for not using redirects with SPAs is that you would run into Cross-Origin Request Sharing (CORS) issues. Consider the scenario where an SPA is
+served from https://client.bookshop.com and makes HTTP calls through AJAX to a backend at https://server.bookshop.com. The communication is blocked because the
+two URLs don't have the same origin (the same protocol, domain, and port). That's the standard same-origin policy enforced by all web browsers.
+
+CORS is a mechanism for allowing a server to accept HTTP calls through AJAX from a browser-based client like an SPA, even if the two have different origins.
+In Bookshop, we serve the Angular frontend via the gateway implemented in Edge Service (same origin). Therefore, there aren't any CORS issues between these two
+components. However, suppose Spring Security is configured to reply to an unauthenticated AJAX call with a redirect to Keycloak (having a different origin).
+In that case, the request will be blocked because redirects to different origins are not permitted during AJAX requests.
+
+When changing the Spring Security configuration to reply with an HTTP 401 response to unauthenticated requests, it's up to the SPA to handle the error and call
+the backend to initiate the authentication flow. Redirects are only a problem during AJAX requests. The login call is not an AJAX request sent from the Angular
+HttpClient. Instead, it instructs the browser to call the login URL. Spring Security exposes an /oauth2/authorization/{registrationId} endpoint that you can use
+to start the authentication flow based on OAuth2/OIDC.

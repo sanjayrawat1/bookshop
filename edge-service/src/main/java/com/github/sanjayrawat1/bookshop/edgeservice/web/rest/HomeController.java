@@ -14,7 +14,7 @@ public class HomeController {
 
     private final BookshopProperties bookshopProperties;
 
-    @GetMapping("/")
+    @GetMapping("/home")
     public String getGreeting() {
         return bookshopProperties.getGreeting();
     }
