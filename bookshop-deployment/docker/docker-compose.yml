@@ -59,6 +59,8 @@ services:
   edge-service:
     depends_on:
       - bookshop-redis
+      - bookshop-keycloak
+      - bookshop-ui
     image: edge-service
     container_name: edge-service
     ports:
@@ -72,6 +74,7 @@ services:
       - ORDER_SERVICE_URL=http://order-service:9002
       - SPRING_CLOUD_CONFIG_URI=http://config-service:8888
       - SPRING_REDIS_HOST=bookshop-redis
+      - SPA_URL=http://bookshop-ui:9004
 
   config-service:
     image: "config-service"
@@ -86,6 +89,14 @@ services:
       # Buildpacks environment variable to enable debug through a socket on port 9888.
       - BPL_DEBUG_ENABLED=true
       - BPL_DEBUG_PORT=9888
+
+  bookshop-ui:
+    image: "ghcr.io/polarbookshop/polar-ui:v1"
+    container_name: "bookshop-ui"
+    ports:
+      - 9004:9004
+    environment:
+      - PORT=9004
 
   # Backing Services
 
