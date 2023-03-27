@@ -12,6 +12,11 @@ import org.springframework.security.oauth2.client.registration.ReactiveClientReg
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.HttpStatusServerEntryPoint;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
+import org.springframework.security.web.server.csrf.CookieServerCsrfTokenRepository;
+import org.springframework.security.web.server.csrf.CsrfToken;
+import org.springframework.security.web.server.csrf.XorServerCsrfTokenRequestAttributeHandler;
+import org.springframework.web.server.WebFilter;
+import reactor.core.publisher.Mono;
 
 /**
  * Security configuration.
@@ -44,6 +49,12 @@ public class SecurityConfiguration {
             // enables user authentication with OAuth2/OpenID connect
             .oauth2Login(Customizer.withDefaults())
             .logout(logout -> logout.logoutSuccessHandler(oidcLogoutSuccessHandler(clientRegistrationRepository)))
+            // a filter with the only purpose of subscribing to the CsrfToken reactive stream and ensuring its value is extracted correctly
+            .csrf(csrf ->
+                csrf
+                    .csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse())
+                    .csrfTokenRequestHandler(new XorServerCsrfTokenRequestAttributeHandler()::handle)
+            )
             .build();
     }
 
@@ -53,5 +64,23 @@ public class SecurityConfiguration {
         // from Spring (locally, it's http://localhost:9000)
         oidcLogoutSuccessHandler.setPostLogoutRedirectUri("{baseUrl}");
         return oidcLogoutSuccessHandler;
+    }
+
+    /**
+     * Uses a cookie-based strategy for exchanging CSRF tokens with the Angular frontend.
+     */
+    @Bean
+    WebFilter csrfWebFilter() {
+        return (exchange, chain) -> {
+            exchange
+                .getResponse()
+                .beforeCommit(() ->
+                    Mono.defer(() -> {
+                        Mono<CsrfToken> csrfToken = exchange.getAttribute(CsrfToken.class.getName());
+                        return csrfToken != null ? csrfToken.then() : Mono.empty();
+                    })
+                );
+            return chain.filter(exchange);
+        };
     }
 }
