@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bookshop-keycloak
+  labels:
+    app: bookshop-keycloak
+spec:
+  selector:
+    matchLabels:
+      app: bookshop-keycloak
+  template:
+    metadata:
+      labels:
+        app: bookshop-keycloak
+    spec:
+      containers:
+        - name: bookshop-keycloak
+          image: quay.io/keycloak/keycloak:21.0.1
+          args:
+            - "start-dev --import-realm"
+          ports:
+            - containerPort: 8080
+          env:
+            - name: KEYCLOAK_ADMIN
+              value: user
+            - name: KEYCLOAK_ADMIN_PASSWORD
+              value: password
+            - name: JAVA_OPTS_APPEND
+              value: "-Dkeycloak.import=/opt/keycloak/data/import/realm-config.json"
+          readinessProbe:
+            httpGet:
+              path: /realms/master
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 350Mi
+            limits:
+              cpu: 500m
+              memory: 750Mi
+          volumeMounts:
+            - name: bookshop-keycloak-config-volume
+              mountPath: /opt/keycloak/data/import
+      volumes:
+        - name: bookshop-keycloak-config-volume
+          configMap:
+            name: bookshop-keycloak
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: bookshop-keycloak
+  labels:
+    app: bookshop-keycloak
+spec:
+  type: ClusterIP
+  selector:
+    app: bookshop-keycloak
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: keycloak-ingress
+  labels:
+    app: bookshop-keycloak
+spec:
+  rules:
+    # ingress rule for HTTP traffic
+    - host: bookshop-keycloak
+      http:
+        paths:
+          # a default rule for all requests
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                # the name of the Service object where traffic should be forwarded
+                name: bookshop-keycloak
+                port:
+                  # the port number for the Service where traffic should be forwarded
+                  number: 80
