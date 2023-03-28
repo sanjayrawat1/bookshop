@@ -106,13 +106,14 @@ spring:
               # no fallback is defined for this circuit breaker
               args:
                 name: orderCircuitBreaker
-  redis:
-    host: localhost
-    port: 6379
-    # time limit for a connection to be established
-    connect-timeout: 2s
-    # time limit for a response to be received
-    timeout: 1s
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      # time limit for a connection to be established
+      connect-timeout: 2s
+      # time limit for a response to be received
+      timeout: 1s
   session:
     # Instruct Spring Boot to use Redis for session management
     store-type: redis
