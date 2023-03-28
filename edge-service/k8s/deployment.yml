@@ -33,3 +33,7 @@ spec:
               value: http://config-service
             - name: SPRING_REDIS_HOST
               value: bookshop-redis
+            - name: SPA_URL
+              value: http://bookshop-ui
+            - name: SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_ISSUER_URI
+              value: http://bookshop-keycloak/realms/Bookshop
