@@ -83,6 +83,12 @@ spring:
     username: user
     password: password
     connection-timeout: 5s
+  security:
+    oauth2:
+      resource-server:
+        # OAuth2 doesn't enforce a data format for Access Tokens, so we must be explicit about our choice. In this case, we want to use JWT.
+        jwt:
+          issuer-uri: http://localhost:8080/realms/Bookshop
 
 bookshop:
   greeting: Welcome to the local book order!
