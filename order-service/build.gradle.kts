@@ -23,6 +23,7 @@ repositories {
 
 extra["springCloudVersion"] = "2022.0.1"
 extra["testcontainersVersion"] = "1.17.6"
+extra["testKeycloakVersion"] = "2.5.0"
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webflux")
@@ -42,12 +43,14 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.security:spring-security-test")
     testImplementation("io.projectreactor:reactor-test")
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.testcontainers:postgresql")
     testImplementation("org.testcontainers:r2dbc")
     testImplementation("com.squareup.okhttp3:mockwebserver")
     testImplementation("org.springframework.cloud:spring-cloud-stream-test-binder")
+    testImplementation("com.github.dasniko:testcontainers-keycloak:${property("testKeycloakVersion")}")
 }
 
 dependencyManagement {
