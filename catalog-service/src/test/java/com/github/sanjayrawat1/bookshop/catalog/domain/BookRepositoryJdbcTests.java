@@ -13,6 +13,7 @@ import org.springframework.boot.test.autoconfigure.data.jdbc.DataJdbcTest;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.jdbc.core.JdbcAggregateTemplate;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 
 /**
@@ -102,5 +103,30 @@ public class BookRepositoryJdbcTests {
         bookRepository.deleteByIsbn(bookIsbn);
 
         assertThat(jdbcAggregateTemplate.findById(persistedBook.id(), Book.class)).isNull();
+    }
+
+    @Test
+    void whenCreateBookNotAuthenticatedThenNoAuditMetadata() {
+        var bookToCreate = Book.of("1232343456", "Title", "Author", 12.90, "Publisher");
+        var createdBook = bookRepository.save(bookToCreate);
+
+        assertThat(createdBook.createdBy()).isNull();
+        assertThat(createdBook.lastModifiedBy()).isNull();
+    }
+
+    /**
+     * The Spring Security Test project provides us with a handy @WithMockUser annotation we can use on test cases to make them run in an authenticated context.
+     * You can also add information about the mock user. Since we're testing auditing, we want to define at least a username that can be used as the principal.
+     * <p>
+     * This test case is executed in an authenticated context for the user "sanjay".
+     */
+    @Test
+    @WithMockUser("sanjay")
+    void whenCreateBookAuthenticatedThenAuditMetadata() {
+        var bookToCreate = Book.of("1232343457", "Title", "Author", 12.90, "Publisher");
+        var createdBook = bookRepository.save(bookToCreate);
+
+        assertThat(createdBook.createdBy()).isEqualTo("sanjay");
+        assertThat(createdBook.lastModifiedBy()).isEqualTo("sanjay");
     }
 }
