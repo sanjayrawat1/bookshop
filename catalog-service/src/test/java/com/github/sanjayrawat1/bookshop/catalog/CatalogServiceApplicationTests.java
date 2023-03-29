@@ -160,6 +160,8 @@ class CatalogServiceApplicationTests {
             createdBook.publisher(),
             createdBook.createdDate(),
             createdBook.lastModifiedDate(),
+            createdBook.createdBy(),
+            createdBook.lastModifiedBy(),
             createdBook.version()
         );
 

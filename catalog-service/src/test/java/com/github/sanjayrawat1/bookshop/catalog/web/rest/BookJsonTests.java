@@ -34,7 +34,7 @@ public class BookJsonTests {
     @Test
     void testSerialization() throws Exception {
         var now = Instant.now();
-        var book = new Book(123L, "1234567890", "Title", "Author", 9.90, "Publisher", now, now, 2);
+        var book = new Book(123L, "1234567890", "Title", "Author", 9.90, "Publisher", now, now, "sanjay", "anup", 2);
         // Verifying the parsing from Java to JSON, using the JsonPath format to navigate the JSON object.
         var jsonContent = json.write(book);
         assertThat(jsonContent).extractingJsonPathNumberValue("@.id").isEqualTo(book.id().intValue());
@@ -45,6 +45,8 @@ public class BookJsonTests {
         assertThat(jsonContent).extractingJsonPathStringValue("@.publisher").isEqualTo(book.publisher());
         assertThat(jsonContent).extractingJsonPathStringValue("@.createdDate").isEqualTo(book.createdDate().toString());
         assertThat(jsonContent).extractingJsonPathStringValue("@.lastModifiedDate").isEqualTo(book.lastModifiedDate().toString());
+        assertThat(jsonContent).extractingJsonPathStringValue("@.createdBy").isEqualTo(book.createdBy());
+        assertThat(jsonContent).extractingJsonPathStringValue("@.lastModifiedBy").isEqualTo(book.lastModifiedBy());
         assertThat(jsonContent).extractingJsonPathNumberValue("@.version").isEqualTo(book.version());
     }
 
@@ -62,11 +64,13 @@ public class BookJsonTests {
                     "publisher": "Publisher",
                     "createdDate": "2023-03-09T18:05:37.135029Z",
                     "lastModifiedDate": "2023-03-09T18:05:37.135029Z",
+                    "createdBy": "sanjay",
+                    "lastModifiedBy": "anup",
                     "version": 2
                 }
                 """;
         assertThat(json.parse(content))
             .usingRecursiveComparison()
-            .isEqualTo(new Book(123L, "1234567890", "Title", "Author", 9.90, "Publisher", instant, instant, 2));
+            .isEqualTo(new Book(123L, "1234567890", "Title", "Author", 9.90, "Publisher", instant, instant, "sanjay", "anup", 2));
     }
 }

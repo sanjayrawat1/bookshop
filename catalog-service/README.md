@@ -724,3 +724,22 @@ we'll use those authorities to define authorization rules for the endpoints of C
 ![](https://github.com/sanjayrawat1/bookshop/blob/main/catalog-service/diagrams/conversion-of-user-roles-from-jwt-to-granted-authority.drawio.svg)
 
 **Since granted authorities can be used to represent different items (roles, scopes, permissions), Spring Security uses prefixes to group them.**
+
+#### Auditing data with Spring Security and Spring Data JDBC
+We need to address to main concerns:
+1. How can we tell which users created what data? Who changed it last?
+2. How can we ensure that each user can only access their own data?
+
+We need to include the usernames of the person who created the entity and the person who modified it last. First we need to tell Spring Data where to get the
+information about the currently authenticated user.
+
+Any change to a database schema should also be backward compatible to support common deployment strategies for cloud native applications, like rolling upgrades,
+blue/green deployments, or canary releases. In this case, we need to add new columns to the book table. As long as we don't make them mandatory, the change will
+be backward compatible. After we change the schema, any running instance of the previous release of Catalog Service will continue to work without errors, simply
+ignoring the new columns.
+
+The tradeoff of enforcing backward-compatible changes is that we now have to treat as optional two fields that we need to have always filled in, and that may
+fail validation if they're not. That is a common problem that can be solved over two subsequent releases of the application:
+1. In the first release, you add the new columns as optional and implement a data migration to fill in the new columns for all the existing data. For Catalog
+Service, you could use a conventional value to represent that we don't know who created or updated the entity, such as unknown or anonymous.
+2. In the second release, you can create a new migration to update the schema safely and make the new columns required.
