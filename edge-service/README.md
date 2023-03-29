@@ -634,3 +634,19 @@ requests to Catalog Service and Order Service.
 
 Unlike ID Tokens which are JWTs, the OAuth2 framework doesn't enforce a data format for Access Tokens. They can be of any String-based form. The most popular
 format is JWT, though, so that's how we'll parse Access Tokens on the consumer side (Catalog Service and Order Service).
+
+##### Storing Access Token in Redis
+By default, Spring Security stores the Access Tokens for the currently authenticated users in memory. When you have multiple instances of Edge Service running
+(which is always true in a cloud production environment to ensure high availability), you will encounter issues due to the statefulness of the application.
+Cloud native applications should be stateless.
+
+Spring Security stores Access Tokens in an OAuth2AuthorizedClient object that is accessible through a ServerOAuth2AuthorizedClientRepository bean. The default
+implementation for that repository adopts an in-memory strategy for persistence.
+A simple way to do that is to store OAuth2AuthorizedClient objects in the web session rather than in memory so that Spring Session will pick them up
+automatically and save them in Redis, just like it does with ID Tokens.
+
+![](https://github.com/sanjayrawat1/bookshop/blob/main/edge-service/diagrams/main-classes-involved-in-storing-access-token.drawio.svg)
+
+**Access Tokens defined as JWTs should be handled with care. They are bearer tokens, meaning that any application can use them in an HTTP request and get access
+to an OAuth2 Resource Server. Handling the OIDC/ OAuth2 flow in the backend rather than in an SPA provides better security because we don’t expose any tokens to
+the browser. However, there might be other risks to manage, so carefully consider the trust boundaries of your system.**
