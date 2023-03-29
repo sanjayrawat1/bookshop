@@ -60,6 +60,12 @@ spring:
       connection-timeout: 2000
       # Maximum number of connections HikariCP will keep in the pool.
       maximum-pool-size: 5
+  security:
+    oauth2:
+      resource-server:
+        # OAuth2 doesn't enforce a data format for Access Tokens, so we must be explicit about our choice. In this case, we want to use JWT.
+        jwt:
+          issuer-uri: http://localhost:8080/realms/Bookshop
 
 bookshop:
   greeting: Welcome to the local book catalog!

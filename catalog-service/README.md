@@ -689,3 +689,22 @@ deploying it to your local Kubernetes cluster, and keeping it up-to-date wheneve
 * The Octant dashboard lets you visualize your Kubernetes workloads.
 * Octant is a convenient tool that you can use not only for inspecting and troubleshooting a local Kubernetes cluster but also for a remote one.
 * Kubeval is a convenient tool you can use to validate Kubernetes manifests. It’s particularly useful when it’s included in your deployment pipeline.
+
+#### Securing Spring Boot as an OAuth2 Resource Server
+##### Configuring the integration between Spring Security and Keycloak
+Spring Security supports protecting endpoints using two data formats for the Access Token:
+1. **JWT** - When the Access Token is a JWT, we can also include relevant information as claims about the authenticated user and propagate this context to
+Catalog Service and Order Service.
+2. **Opaque tokens** - opaque tokens would require the application downstream to contact Keycloak every time to fetch the information associated with the token.
+
+We'll work with Access Tokens defined as JWTs, similar to what we did for ID Tokens. With Access Tokens, Keycloak grants Edge Service access to downstream
+applications on behalf of the user.
+
+When working with JWTs, the application will contact Keycloak mainly to fetch the public keys necessary to verify the token’s signature. Using the issuer-uri
+property, we'll let the application auto-discover the Keycloak endpoint where it can find the public keys.
+OAuth2 Authorization Servers provide their public keys using the JSON Web Key (JWK) format. The collection of public keys is called a JWK Set. The endpoint
+where Keycloak exposes its public keys is called the JWK Set URI. Spring Security will automatically rotate the public keys whenever Keycloak makes new ones
+available.
+
+For each incoming request containing an Access Token in the Authorization header, Spring Security will automatically validate the token's signature using the
+public keys provided by Keycloak and decode its claims via a JwtDecoder object.
