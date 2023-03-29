@@ -56,7 +56,9 @@ spring:
           max-life-time: 60s
       default-filters:
         # Ensures the session data is saved before forwarding a request downstream
-        - name: SaveSession
+        - SaveSession
+        # Enables the propagation of the Access Token when calling a downstream service
+        - TokenRelay
         - name: RequestRateLimiter
           args:
             redis-rate-limiter:

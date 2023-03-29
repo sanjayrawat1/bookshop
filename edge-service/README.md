@@ -573,3 +573,64 @@ that via the RP-Initiated Logout flow supported by Spring Security via the OidcC
 * When a secure Spring Boot application is the backend for an SPA, we need to configure CSRF protection through cookies and implement an authentication entry
 point that returns an HTTP 401 response when a request is not authenticated (as opposed to the default HTTP 302 response redirecting to the Authorization
 Server automatically).
+
+### Security: Authorization and Auditing
+Bookshop is a distributed system, and after a user authenticates successfully with Keycloak, Edge Service is supposed to interact with Catalog Service and
+Order Service on behalf of the user. How can we securely propagate the authentication context to the other system applications? We will solve this problem using
+OAuth2 and **Access Tokens**.
+
+##### Authorization and roles with Spring Cloud Gateway and OAuth2
+Edge Service initiates the authentication flow but delegates the actual authentication step to Keycloak using the OpenID Connect protocol.
+
+Once a user authenticates successfully with Keycloak, Edge Service receives an ID Token from Keycloak with information about the authentication event and
+initiates an authenticated session with the user's browser. At the same time, Keycloak also issues an Access Token, which is used to grant Edge Service access
+to downstream applications on behalf of the user as per OAuth2
+
+OAuth2 is an authorization framework that enables an application (called a Client) to obtain limited access to a protected resource provided by another
+application (called a Resource Server) on behalf of a user. When a user authenticates with Edge Service and asks to access their book orders, OAuth2 provides a
+solution for Edge Service to retrieve orders from Order Service on behalf of that user. This solution relies on a trusted party (called an Authorization Server),
+which issues an **Access Token** to Edge Service and grants access to the user's book orders from Order Service.
+
+Fourth actor in the OAuth2 framework that is used by the OIDC protocol:
+* **Resource Server** — This is the application hosting the protected resources a Client wants to access on the user's behalf. In Bookshop, Catalog Service and
+Order Service are Resource Servers. Dispatcher Service is decoupled from the other applications and won't be accessed on behalf of the user. As a result, it
+won't participate in the OAuth2 setup.
+
+![](https://github.com/sanjayrawat1/bookshop/blob/main/edge-service/diagrams/oidc-oatuh2-roles-in-bookshop-architecture-with-ui-catalog-and-order-component.drawio.svg)
+
+Edge Service can access downstream applications on behalf of the user through an Access Token issued by Keycloak during the OIDC authentication phase.
+
+In Bookshop, the OAuth2 Client (Edge Service) and the OAuth2 Resource Servers (Catalog Service and Order Service) belong to the same system, but the same
+framework can be used when the OAuth2 Client is a third-party application. In fact, that was the original use case for OAuth2 and why it became so popular.
+Using OAuth2, services like GitHub or Twitter let you give third-party applications limited access to your account. For example, you could authorize a
+scheduling application to publish tweets on your behalf without exposing your Twitter credentials.
+
+##### Token relay from Spring Cloud Gateway to other services
+After a user successfully authenticates with Keycloak, Edge Service (the OAuth2 Client) receives an ID Token and an Access Token:
+* **ID Token** — This represents a successful authentication event and includes information about the authenticated user.
+* **Access Token** — This represents the authorization given to the OAuth2 Client to access protected data provided by an OAuth2 Resource Server on the user's
+behalf.
+
+Spring Security uses the ID Token to extract information about the authenticated user, set up a context for the current user session, and make the data
+available through the OidcUser object.
+The Access Token grants Edge Service authorized access to Catalog Service and Order Service (the OAuth2 Resource Servers) on behalf of the user. After we secure
+both applications, Edge Service will have to include the Access Token in all requests routed to them as an Authorization HTTP header. Unlike ID Tokens, Edge
+Service doesn't read the Access Token's content because it's not the intended audience. It stores the Access Token received from Keycloak and then includes it
+as-is in any request to a protected endpoint downstream.
+
+This pattern is called **token relay**, and it's supported by Spring Cloud Gateway as a built-in filter, so you don't need to implement anything yourself. When
+the filter is enabled, the Access Token is included automatically in all requests sent to one of the downstream applications.
+
+![](https://github.com/sanjayrawat1/bookshop/blob/main/edge-service/diagrams/token-relay-accessing-oauth2-resource-server.drawio.svg)
+
+**After a user is authenticated, Edge Service relays the Access Token to Order Service to call its protected endpoints on behalf of the user.**
+
+An Access Token has a validity period configured in Keycloak, and it should be as short as possible to reduce the exploitation time window in case the token
+gets leaked. An acceptable length is 5 minutes. When the token expires, the OAuth2 Client can ask the Authorization Server for a new one using a third type of
+token called a Refresh Token (which also has a validity period). The refresh mechanism is handled by Spring Security transparently.
+
+With the **TokenRelay** filter enabled, Spring Cloud Gateway takes care of propagating the right Access Token as an **Authorization** header in all outgoing
+requests to Catalog Service and Order Service.
+
+Unlike ID Tokens which are JWTs, the OAuth2 framework doesn't enforce a data format for Access Tokens. They can be of any String-based form. The most popular
+format is JWT, though, so that's how we'll parse Access Tokens on the consumer side (Catalog Service and Order Service).
