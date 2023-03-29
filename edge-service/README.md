@@ -650,3 +650,13 @@ automatically and save them in Redis, just like it does with ID Tokens.
 **Access Tokens defined as JWTs should be handled with care. They are bearer tokens, meaning that any application can use them in an HTTP request and get access
 to an OAuth2 Resource Server. Handling the OIDC/ OAuth2 flow in the backend rather than in an SPA provides better security because we don’t expose any tokens to
 the browser. However, there might be other risks to manage, so carefully consider the trust boundaries of your system.**
+
+##### Accessing the User Roles
+Both ID Tokens and Access Tokens can include different information about the user, which is formatted as claims in the JWT. Claims are simple key/value pairs
+in JSON format. For example, OpenID Connect defines several standard claims to carry information about the user, like given_name, family_name,
+preferred_username, and email. Access to such claims is controlled through scopes, a mechanism provided by OAuth2 to limit what data an OAuth2 Client can
+access. You can think of scopes as roles assigned to applications rather than to users. Use a roles scope to grant Edge Service access to that claim and
+instruct Keycloak to include it in both ID Tokens and Access Tokens.
+
+Keycloak comes preconfigured with a roles scope you can use to give an application access to the user roles contained in a roles claim. You need to configure
+**roles** client scope's mapper to include the user's  realm roles in a roles JWT claim.

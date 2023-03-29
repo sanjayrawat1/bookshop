@@ -136,7 +136,9 @@ spring:
             client-secret: bookshop-keycloak-secret
             # the list of scopes the client would like to have access to.
             # the openid scope triggers OIDC authentication on top of OAuth2
-            scope: openid
+            scope:
+              - openid
+              - roles
         provider:
           # the same name used as registrationId
           keycloak:
