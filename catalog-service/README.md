@@ -708,3 +708,19 @@ available.
 
 For each incoming request containing an Access Token in the Authorization header, Spring Security will automatically validate the token's signature using the
 public keys provided by Keycloak and decode its claims via a JwtDecoder object.
+
+##### Role-based access control with Spring Security and JWT
+Spring Security associates each authenticated user with a list of GrantedAuthority objects that model the authorities the user has been granted. Granted
+authorities can be used to represent fine-grained permissions, roles, or even scopes and come from different sources depending on the authentication strategy.
+The authorities are available through the Authentication object representing the authenticated user and stored in the SecurityContext.
+
+Since Catalog Service is configured as an OAuth2 Resource Server and uses JWT authentication, Spring Security extracts the list of scopes from the scopes claim
+of the Access Token and uses them as granted authorities for the given user automatically. Each GrantedAuthority object built in this way will be named with the
+SCOPE_ prefix and the scope value.
+
+We'll define a custom converter for the Access Token to build a list of GrantedAuthority objects using the values in the roles claim and the ROLE_ prefix. Then
+we'll use those authorities to define authorization rules for the endpoints of Catalog Service.
+
+![](https://github.com/sanjayrawat1/bookshop/blob/main/catalog-service/diagrams/conversion-of-user-roles-from-jwt-to-granted-authority.drawio.svg)
+
+**Since granted authorities can be used to represent different items (roles, scopes, permissions), Spring Security uses prefixes to group them.**
