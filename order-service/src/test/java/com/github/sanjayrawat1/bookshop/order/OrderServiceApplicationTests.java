@@ -14,6 +14,8 @@ import com.github.sanjayrawat1.bookshop.order.event.OrderAcceptedMessage;
 import com.github.sanjayrawat1.bookshop.order.web.rest.OrderRequest;
 import dasniko.testcontainers.keycloak.KeycloakContainer;
 import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -96,11 +98,12 @@ class OrderServiceApplicationTests {
     }
 
     @Test
-    void whenGetOrdersThenReturn() throws IOException {
+    void whenGetOwnOrdersThenReturn() throws IOException {
         String bookIsbn = "1234567893";
         Book book = new Book(bookIsbn, "Title", "Author", 9.90);
         given(bookClient.getBookByIsbn(bookIsbn)).willReturn(Mono.just(book));
         OrderRequest orderRequest = new OrderRequest(bookIsbn, 1);
+
         Order expectedOrder = webTestClient
             .post()
             .uri("/orders")
@@ -124,6 +127,56 @@ class OrderServiceApplicationTests {
             .is2xxSuccessful()
             .expectBodyList(Order.class)
             .value(orders -> assertThat(orders.stream().filter(order -> order.bookIsbn().equals(bookIsbn)).findAny()).isNotEmpty());
+    }
+
+    @Test
+    void whenGetOrdersForAnotherUserThenNotReturned() throws IOException {
+        String bookIsbn = "1234567899";
+        Book book = new Book(bookIsbn, "Title", "Author", 9.90);
+        given(bookClient.getBookByIsbn(bookIsbn)).willReturn(Mono.just(book));
+        OrderRequest orderRequest = new OrderRequest(bookIsbn, 1);
+
+        Order orderByAnup = webTestClient
+            .post()
+            .uri("/orders")
+            .headers(headers -> headers.setBearerAuth(anupToken.accessToken()))
+            .bodyValue(orderRequest)
+            .exchange()
+            .expectStatus()
+            .is2xxSuccessful()
+            .expectBody(Order.class)
+            .returnResult()
+            .getResponseBody();
+        assertThat(orderByAnup).isNotNull();
+        assertThat(objectMapper.readValue(output.receive().getPayload(), OrderAcceptedMessage.class)).isEqualTo(new OrderAcceptedMessage(orderByAnup.id()));
+
+        Order orderBySanjay = webTestClient
+            .post()
+            .uri("/orders")
+            .headers(headers -> headers.setBearerAuth(sanjayToken.accessToken()))
+            .bodyValue(orderRequest)
+            .exchange()
+            .expectStatus()
+            .is2xxSuccessful()
+            .expectBody(Order.class)
+            .returnResult()
+            .getResponseBody();
+        assertThat(orderBySanjay).isNotNull();
+        assertThat(objectMapper.readValue(output.receive().getPayload(), OrderAcceptedMessage.class)).isEqualTo(new OrderAcceptedMessage(orderBySanjay.id()));
+
+        webTestClient
+            .get()
+            .uri("/orders")
+            .headers(headers -> headers.setBearerAuth(anupToken.accessToken()))
+            .exchange()
+            .expectStatus()
+            .is2xxSuccessful()
+            .expectBodyList(Order.class)
+            .value(orders -> {
+                List<Long> orderIds = orders.stream().map(Order::id).collect(Collectors.toList());
+                assertThat(orderIds).contains(orderByAnup.id());
+                assertThat(orderIds).doesNotContain(orderBySanjay.id());
+            });
     }
 
     @Test
