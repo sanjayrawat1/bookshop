@@ -5,9 +5,12 @@ server:
     idle-timeout: 15s
   shutdown: graceful
 
-#logging:
-#  level:
-#    io.github.resilience4j: DEBUG
+logging:
+  # Collects multiple loggers into a group to apply the same configuration.
+  group:
+    circuit-breaker: io.github.resilience4j, org.springframework.cloud.circuitbreaker
+  level:
+    circuit-breaker: info
 
 management:
   endpoints:
