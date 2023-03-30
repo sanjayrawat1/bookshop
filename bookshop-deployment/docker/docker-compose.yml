@@ -5,6 +5,7 @@ services:
 
   catalog-service:
     depends_on:
+      - bookshop-keycloak
       - bookshop-postgres
     image: "catalog-service"
     container_name: "catalog-service"
@@ -22,9 +23,12 @@ services:
       - SPRING_CLOUD_CONFIG_URI=http://config-service:8888
       - SPRING_DATASOURCE_URL=jdbc:postgresql://bookshop-postgres:5432/bookshop_catalog
       - SPRING_PROFILES_ACTIVE=test-data
+      # You can use the container name (bookshop-keycloak:8080), which gets resolved by the built-in Docker DNS.
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://host.docker.internal:8080/realms/Bookshop
 
   order-service:
     depends_on:
+      - bookshop-keycloak
       - bookshop-postgres
       - bookshop-rabbitmq
     image: order-service
@@ -40,6 +44,8 @@ services:
       - SPRING_R2DBC_URL=r2dbc:postgresql://bookshop-postgres:5432/bookshop_order
       - SPRING_FLYWAY_URL=jdbc:postgresql://bookshop-postgres:5432/bookshop_order
       - SPRING_RABBITMQ_HOST=bookshop-rabbitmq
+      # You can use the container name (bookshop-keycloak:8080), which gets resolved by the built-in Docker DNS.
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://host.docker.internal:8080/realms/Bookshop
 
   dispatcher-service:
     depends_on:
@@ -75,6 +81,7 @@ services:
       - SPRING_CLOUD_CONFIG_URI=http://config-service:8888
       - SPRING_REDIS_HOST=bookshop-redis
       - SPA_URL=http://bookshop-ui:9004
+      # You can use the container name (bookshop-keycloak:8080), which gets resolved by the built-in Docker DNS.
       - SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_ISSUER_URI=http://host.docker.internal:8080/realms/Bookshop
 
   config-service:
