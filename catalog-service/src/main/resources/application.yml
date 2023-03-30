@@ -27,6 +27,9 @@ management:
 spring:
   application:
     name: catalog-service
+  output:
+    ansi:
+      console-available: true
   lifecycle:
     timeout-per-shutdown-phase: 15s
   config:
