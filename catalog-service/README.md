@@ -743,3 +743,17 @@ fail validation if they're not. That is a common problem that can be solved over
 1. In the first release, you add the new columns as optional and implement a data migration to fill in the new columns for all the existing data. For Catalog
 Service, you could use a conventional value to represent that we don't know who created or updated the entity, such as unknown or anonymous.
 2. In the second release, you can create a new migration to update the schema safely and make the new columns required.
+
+#### Health probes with Spring Boot Actuator and Kubernetes
+Once an application is deployed, how can we tell if it's healthy? Is it capable of handling new requests? Did it enter a faulty state? Cloud native applications
+should provide information about their health so that monitoring tools and deployment platforms can detect when there's something wrong and act accordingly.
+
+The deployment platform can periodically invoke health endpoints exposed by applications. A monitoring tool could trigger an alert or a notification when an
+application instance is unhealthy. In the case of Kubernetes, the platform will check the health endpoints and automatically replace the faulty instance or
+temporarily stop sending traffic to it until it’s ready to handle new requests again.
+
+There are a few viable solutions for protecting the Spring Boot Actuator endpoints. For example, you could enable HTTP Basic authentication just for the
+Actuator endpoints, while all the others will keep using OpenID Connect and OAuth2. For simplicity, in the Bookshop system, we'll keep the Actuator endpoints
+unauthenticated from inside the Kubernetes cluster and block any access to them from the outside.
+
+In a real production scenario, I would recommend protecting access to the Actuator endpoints even from within the cluster.

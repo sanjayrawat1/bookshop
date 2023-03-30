@@ -24,7 +24,15 @@ public class SecurityConfiguration {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-            .authorizeHttpRequests(authorize -> authorize.requestMatchers(HttpMethod.GET, "/", "/books/**").permitAll().anyRequest().hasRole("employee"))
+            .authorizeHttpRequests(authorize ->
+                authorize
+                    .requestMatchers("/management/**")
+                    .permitAll()
+                    .requestMatchers(HttpMethod.GET, "/", "/books/**")
+                    .permitAll()
+                    .anyRequest()
+                    .hasRole("employee")
+            )
             // enables OAuth2 Resource Server support using the default configuration based on JWT (JWT authentication).
             .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
             // each request must include an Access Token, so there's no need to keep a user session alive between requests. We want it to be stateless.
