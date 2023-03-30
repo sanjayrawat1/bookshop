@@ -5,6 +5,7 @@ services:
 
   catalog-service:
     depends_on:
+      - fluent-bit
       - bookshop-keycloak
       - bookshop-postgres
     image: "catalog-service"
@@ -25,9 +26,17 @@ services:
       - SPRING_PROFILES_ACTIVE=test-data
       # You can use the container name (bookshop-keycloak:8080), which gets resolved by the built-in Docker DNS.
       - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://host.docker.internal:8080/realms/Bookshop
+    # Section to configure the container logging driver.
+    logging:
+      # Which logging driver to use.
+      driver: fluentd
+      options:
+        # The address of the Fluent Bit instance where the logs should be routed.
+        fluentd-address: 127.0.0.1:24224
 
   order-service:
     depends_on:
+      - fluent-bit
       - bookshop-keycloak
       - bookshop-postgres
       - bookshop-rabbitmq
@@ -46,9 +55,14 @@ services:
       - SPRING_RABBITMQ_HOST=bookshop-rabbitmq
       # You can use the container name (bookshop-keycloak:8080), which gets resolved by the built-in Docker DNS.
       - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://host.docker.internal:8080/realms/Bookshop
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: 127.0.0.1:24224
 
   dispatcher-service:
     depends_on:
+      - fluent-bit
       - bookshop-rabbitmq
     image: "dispatcher-service"
     container_name: dispatcher-service
@@ -61,9 +75,14 @@ services:
       - BPL_DEBUG_PORT=8003
       - SPRING_CLOUD_CONFIG_URI=http://config-service:8888
       - SPRING_RABBITMQ_HOST=bookshop-rabbitmq
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: 127.0.0.1:24224
 
   edge-service:
     depends_on:
+      - fluent-bit
       - bookshop-redis
       - bookshop-keycloak
       - bookshop-ui
@@ -83,8 +102,14 @@ services:
       - SPA_URL=http://bookshop-ui:9004
       # You can use the container name (bookshop-keycloak:8080), which gets resolved by the built-in Docker DNS.
       - SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_ISSUER_URI=http://host.docker.internal:8080/realms/Bookshop
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: 127.0.0.1:24224
 
   config-service:
+    depends_on:
+      - fluent-bit
     image: "config-service"
     container_name: "config-service"
     ports:
@@ -97,14 +122,24 @@ services:
       # Buildpacks environment variable to enable debug through a socket on port 9888.
       - BPL_DEBUG_ENABLED=true
       - BPL_DEBUG_PORT=9888
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: 127.0.0.1:24224
 
   bookshop-ui:
+    depends_on:
+      - fluent-bit
     image: "ghcr.io/polarbookshop/polar-ui:v1"
     container_name: "bookshop-ui"
     ports:
       - 9004:9004
     environment:
       - PORT=9004
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: 127.0.0.1:24224
 
   # Backing Services
 

@@ -111,3 +111,23 @@ telemetry, no matter where it is stored (https://grafana.com/oss/grafana).
 ![](https://github.com/sanjayrawat1/bookshop/blob/main/bookshop-deployment/diagrams/logging-architecture-using-grafana-stack.drawio.svg)
 
 **Logging architecture for cloud native applications based on the Grafana stack**
+
+Fluent Bit can be configured to collect logs from different sources. For Bookshop, we'll rely on the Fluentd driver available in Docker to collect logs
+automatically from running containers. The Docker platform itself listens to the log events from each container and routes them to the specified service.
+In Docker, a logging driver can be configured directly on a container.
+
+To test the logs in grafana stack, run the catalog service by following below commands:
+
+`$ docker-compose up -d grafana catalog-service`
+
+The dependent services of grafana and catalog service will automatically be started as well.
+
+Now, send a few requests to catalog service to trigger the generation of some log messages:
+
+`$ http :9001/books`
+
+Then open a browser, head to Grafana http://localhost:3000, and use credentials configured in the docker compose to log in (user/password). Then select Explore
+page from left menu, choose Loki as the data source, choose last 1 hour from the time drop-down menu and run the following query to search for all the logs
+produced by the **catalog-service** container:
+
+`{container_name="/catalog-service"}`
