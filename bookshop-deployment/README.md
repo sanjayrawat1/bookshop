@@ -13,7 +13,9 @@ First you need to instruct the JVM inside the container to listen for debug conn
 supports dedicated environment variables for running the application in debug mode (BPL_DEBUG_ENABLED and BPL_DEBUG_PORT). Then you need to expose the 
 debug port outside the container so that your IDE can reach it.
 
-![From a container, you can expose as many ports as you want. For Catalog Service, expose both the server port and the debug port.](https://github.com/sanjayrawat1/bookshop/blob/main/bookshop-deployment/debug-spring-boot-containers.drawio.svg "Debugging Spring Boot containers")
+**From a container, you can expose as many ports as you want. For Catalog Service, expose both the server port and the debug port.**
+
+![](https://github.com/sanjayrawat1/bookshop/blob/main/bookshop-deployment/diagrams/debug-spring-boot-containers.drawio.svg "Debugging Spring Boot containers")
 
 After adding remote config in docker-compose file go to the location of docker-compose.yml file and run the following command:
 
@@ -79,3 +81,33 @@ On Windows you must map the **bookshop-keycloak** hostname to **127.0.0.1** in t
 following command:
 
 `$ Add-Content C:\Windows\System32\drivers\etc\hosts "127.0.0.1 bookshop-keycloak"`
+
+#### Managing logs with Loki, Fluent Bit, and Grafana
+When you move to distributed systems like microservices and complex environments like the cloud, managing logs becomes challenging and requires a different
+solution than in more traditional applications. If something goes wrong, where can we find data about the failure? Traditional applications would rely on log
+files stored on the host machine. Cloud native applications are deployed in dynamic environments, are replicated, and have different life spans. We need to
+collect the logs from all applications running in the environment and send them to a central component where they can be aggregated, stored, and searched.
+
+There are plenty of options for managing logs in the cloud. Cloud providers have their own offerings, like Azure Monitor Logs and Google Cloud Logging. There
+are also many enterprise solutions available on the market, such as Honeycomb, Humio, New Relic, Datadog, and Elastic.
+
+For Bookshop, we'll use a solution based on the Grafana observability stack (https://grafana.com). It's composed of open source technologies, and you can run it
+yourself in any environment. It's also available as a managed service (Grafana Cloud) offered by Grafana Labs.
+
+The components of the Grafana stack we'll use for managing logs are:
+1. **Loki** for log storage and search.
+2. **Fluent Bit** for log collection and aggregation.
+3. **Grafana** for log data visualization and querying.
+
+Fluent Bit enables you to collect logs and metrics from multiple sources, enrich them with filters, and distribute them to any defined destination
+(https://fluentbit.io). Fluent Bit is a subproject of Fluentd, an open source data collector for unified logging layer (www.fluentd.org).
+
+Fluent Bit will collect logs from all running containers and forward them to Loki, which will store them and make them searchable. Loki is a log aggregation
+system designed to store and query logs from all your applications and infrastructure (https://grafana.com/oss/loki).
+
+Finally, Grafana will use Loki as a data source and provide log visualization features. Grafana allows you to query, visualize, alert on and understand your
+telemetry, no matter where it is stored (https://grafana.com/oss/grafana).
+
+![](https://github.com/sanjayrawat1/bookshop/blob/main/bookshop-deployment/diagrams/logging-architecture-using-grafana-stack.drawio.svg)
+
+**Logging architecture for cloud native applications based on the Grafana stack**

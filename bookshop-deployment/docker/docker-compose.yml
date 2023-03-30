@@ -154,3 +154,38 @@ services:
       - KEYCLOAK_ADMIN_PASSWORD=password
     ports:
       - "8080:8080"
+
+  # Observability
+
+  grafana:
+    image: grafana/grafana:9.4.7
+    container_name: grafana
+    depends_on:
+      - loki
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=user
+      - GF_SECURITY_ADMIN_PASSWORD=password
+    volumes:
+      - ./observability/grafana/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
+      - ./observability/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./observability/grafana/grafana.ini:/etc/grafana/grafana.ini
+
+  loki:
+    image: grafana/loki:2.7.5
+    container_name: loki
+    depends_on:
+      - fluent-bit
+    ports:
+      - "3100:3100"
+
+  fluent-bit:
+    image: grafana/fluent-bit-plugin-loki:2.7.5-amd64
+    container_name: fluent-bit
+    ports:
+      - "24224:24224"
+    environment:
+      - LOKI_URL=http://loki:3100/loki/api/v1/push
+    volumes:
+      - ./observability/fluent-bit/fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf
