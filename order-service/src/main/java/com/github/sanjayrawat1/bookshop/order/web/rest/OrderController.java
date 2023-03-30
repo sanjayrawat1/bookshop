@@ -30,11 +30,13 @@ public class OrderController {
 
     @GetMapping
     public Flux<Order> getAllOrders(@AuthenticationPrincipal Jwt jwt) {
+        log.info("Fetching all orders of user {}", jwt.getSubject());
         return orderService.getAllOrders(jwt.getSubject());
     }
 
     @PostMapping
     public Mono<Order> submitOrder(@RequestBody @Valid OrderRequest orderRequest) {
+        log.info("Order for {} copies of the book with ISBN {}", orderRequest.quantity(), orderRequest.isbn());
         return orderService.submitOrder(orderRequest.isbn(), orderRequest.quantity());
     }
 }
