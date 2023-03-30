@@ -123,7 +123,7 @@ services:
   bookshop-rabbitmq:
     # the official rabbitmq image with the management plugin enabled
     image: rabbitmq:3.10-management
-    container_name: bookshop_rabbitmq
+    container_name: bookshop-rabbitmq
     ports:
       # the port where rabbitmq listens for AMQP requests
       - "5672:5672"
