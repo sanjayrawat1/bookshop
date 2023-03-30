@@ -11,6 +11,9 @@ management:
 spring:
   application:
     name: dispatcher-service
+  output:
+    ansi:
+      console-available: true
   config:
     # Imports configuration data from a config server when available.
     import: "optional:configserver:"
