@@ -35,3 +35,5 @@ spec:
               value: jdbc:postgresql://bookshop-postgres/bookshop_order
             - name: SPRING_RABBITMQ_HOST
               value: bookshop-rabbitmq
+            - name: SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI
+              value: http://bookshop-keycloak/realms/Bookshop
