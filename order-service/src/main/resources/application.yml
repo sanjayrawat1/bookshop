@@ -17,6 +17,9 @@ management:
 spring:
   application:
     name: order-service
+  output:
+    ansi:
+      console-available: true
   lifecycle:
     timeout-per-shutdown-phase: 15s
   r2dbc:
