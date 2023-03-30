@@ -45,4 +45,5 @@ spec:
               value: jdbc:postgresql://bookshop-postgres/bookshop_catalog
             - name: SPRING_PROFILES_ACTIVE
               value: test-data
-
+            - name: SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI
+              value: http://bookshop-keycloak/realms/Bookshop
