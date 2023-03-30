@@ -19,6 +19,9 @@ management:
 spring:
   application:
     name: edge-service
+  output:
+    ansi:
+      console-available: true
   lifecycle:
     timeout-per-shutdown-phase: 15s
   config:
