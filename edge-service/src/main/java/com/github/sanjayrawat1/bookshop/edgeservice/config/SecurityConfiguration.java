@@ -37,6 +37,8 @@ public class SecurityConfiguration {
         return http
             .authorizeExchange(exchange ->
                 exchange
+                    .pathMatchers("/management/**")
+                    .permitAll()
                     // allows unauthenticated access to the SPA static resources
                     .pathMatchers("/", "/*.css", "/*.js", "/favicon.ico")
                     .permitAll()
