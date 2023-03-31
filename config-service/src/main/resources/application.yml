@@ -12,6 +12,19 @@ logging:
   pattern:
     level: "%5p [${spring.application.name},%X{trace_id},%X{span_id}]"
 
+management:
+  endpoints:
+    web:
+      base-path: /management
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+      probes:
+        enabled: true
+
 spring:
   application:
     name: config-service
