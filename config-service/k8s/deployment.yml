@@ -38,3 +38,22 @@ spec:
           env:
             - name: BPL_JVM_THREAD_COUNT
               value: "50"
+          # configuration for the liveness probe.
+          livenessProbe:
+            # uses and HTTP GET request to get the liveness state.
+            httpGet:
+              # the endpoint to call for the liveness state.
+              path: /management/health/liveness
+              # the port to use to fetch the liveness state.
+              port: 8888
+            # and initial delay before starting checking the liveness state.
+            initialDelaySeconds: 10
+            # the frequency for checking the liveness state.
+            periodSeconds: 5
+          # configuration for the readiness probe.
+          readinessProbe:
+            httpGet:
+              path: /management/health/readiness
+              port: 8888
+            initialDelaySeconds: 5
+            periodSeconds: 15
