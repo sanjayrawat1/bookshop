@@ -17,6 +17,10 @@ spec:
       # labels attached to the Pod object. they should match the ones used as selectors.
       labels:
         app: config-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: /management/prometheus
+        prometheus.io/port: "8888"
     spec:
       # the list of containers in the Pod (one in this case)
       containers:
