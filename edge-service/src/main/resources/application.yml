@@ -19,7 +19,7 @@ management:
     web:
       base-path: /management
       exposure:
-        include: health
+        include: health, metrics, prometheus
   endpoint:
     health:
       show-details: always
@@ -30,6 +30,10 @@ management:
         readiness:
           # The readiness probe will combine the application's readiness state and Redis's availability.
           include: readinessState,redis
+  metrics:
+    tags:
+      # Adds a Micrometer common tag with the application name. This results in a Prometheus label being applied to all metrics.
+      application: ${spring.application.name}
 
 spring:
   application:
