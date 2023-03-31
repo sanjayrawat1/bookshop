@@ -785,3 +785,21 @@ Endpoint for readiness probe:
 The readiness state of a Spring Boot application indicates whether it's ready to accept traffic and process new requests. During the startup phase or graceful
 shutdown, the application is not ready and will refuse any requests. It might also become temporarily not ready if, at some point, it's overloaded. When it's
 not ready, Kubernetes will not send any traffic to the application instance.
+
+#### Configuring Liveness and Readiness Probes in Kubernetes
+Kubernetes relies on the health probes (liveness and readiness) to accomplish its tasks as a container orchestrator. For example, when the desired state of an
+application is to have three replicas, Kubernetes ensures there are always three application instances running. If any of them doesn't return a 200 response
+from the liveness probe, Kubernetes will restart it. When starting or upgrading an application instance, we'd like the process to happen without downtime for
+the user. Therefore, Kubernetes will not enable an instance in the load balancer until it's ready to accept new requests (when Kubernetes gets a 200 response
+from the readiness probe).
+
+Since liveness and readiness information is application-specific, Kubernetes needs the application itself to declare how to retrieve that information. Relying
+on Actuator, Spring Boot applications provide liveness and readiness probes as HTTP endpoints.
+
+Both probes can be configured so that Kubernetes will start using them after an initial delay (initialDelaySeconds), and you can also define the frequency with
+which to invoke them (periodSeconds). The initial delay should consider that the application will take a few seconds to start, and it will depend on the
+available computational resources. The polling period should not be too long, to reduce the time between the application instance entering a faulty state and
+the platform taking action to self-heal.
+
+If you run these examples on resource-constrained environments, you might need to adjust the initial delay and the polling frequency to allow the application
+more time to start and get ready to accept requests.
