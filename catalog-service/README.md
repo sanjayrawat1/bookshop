@@ -757,3 +757,31 @@ Actuator endpoints, while all the others will keep using OpenID Connect and OAut
 unauthenticated from inside the Kubernetes cluster and block any access to them from the outside.
 
 In a real production scenario, I would recommend protecting access to the Actuator endpoints even from within the cluster.
+
+Besides showing detailed information about the application's health, Spring Boot Actuator automatically detects when the application runs on a Kubernetes
+environment and enables the health probes to return liveness (/actuator/health/liveness) and readiness (/actuator/health/readiness) states.
+
+* **Liveness state** — When an application is not live, this means it has entered a faulty internal state from which it won't recover. By default, Kubernetes
+will try restarting it to fix the problem.
+* **Readiness state** — When an application is not ready, this means it can't process new requests, either because it's still initializing all its components
+(during the startup phase) or because it's overloaded. Kubernetes will stop forwarding requests to that instance until it's ready to accept new requests again.
+
+![](https://github.com/sanjayrawat1/bookshop/blob/main/catalog-service/diagrams/application-health-probes.drawio.svg)
+
+**Kubernetes uses liveness and readiness probes to accomplish its self-healing features in case of failures.**
+
+Endpoint for liveness probe:
+
+`$ http :9001/management/health/liveness`
+
+The liveness state of a Spring Boot application indicates whether it's in a correct or broken internal state. If the Spring application context has started
+successfully, the internal state is valid. It doesn't depend on any external components. Otherwise, it will cause cascading failures, since Kubernetes will try
+to restart the broken instances.
+
+Endpoint for readiness probe:
+
+`$ http :9001/management/health/readiness`
+
+The readiness state of a Spring Boot application indicates whether it's ready to accept traffic and process new requests. During the startup phase or graceful
+shutdown, the application is not ready and will refuse any requests. It might also become temporarily not ready if, at some point, it's overloaded. When it's
+not ready, Kubernetes will not send any traffic to the application instance.
