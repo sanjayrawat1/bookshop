@@ -33,6 +33,10 @@ management:
       show-components: always
       probes:
         enabled: true
+  metrics:
+    tags:
+      # Adds a Micrometer common tag with the application name. This results in a Prometheus label being applied to all metrics.
+      application: ${spring.application.name}
 
 spring:
   application:
