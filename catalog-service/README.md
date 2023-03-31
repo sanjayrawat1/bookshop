@@ -803,3 +803,46 @@ the platform taking action to self-heal.
 
 If you run these examples on resource-constrained environments, you might need to adjust the initial delay and the polling frequency to allow the application
 more time to start and get ready to accept requests.
+
+#### Metrics and monitoring with Spring Boot Actuator, Prometheus, and Grafana
+Metrics are numeric data about the application, measured and aggregated in regular time intervals. We use metrics to track the occurrence of an event (such as
+an HTTP request being received), count items (such as the number of allocated JVM threads), measure the time taken to perform a task (such as the latency of a
+database query), or get the current value of a resource (such as current CPU and RAM consumption). This is all valuable information for understanding why an
+application behaves in a certain way. You can monitor metrics and set alerts or notifications for them.
+
+The most common format for exporting metrics is the one used by Prometheus, which is an open-source systems monitoring and alerting toolkit
+(https://prometheus.io). Just as Loki aggregates and stores event logs, Prometheus does the same with metrics.
+
+To check the application metrics, call following endpoint:
+
+`$ http :9001/management/metrics`
+
+The result is a collection of metrics you can further explore by adding the name of a metric to the endpoint (for example, /management/metrics/jvm.memory.used).
+
+Micrometer provides the instrumentation to generate those metrics, but you might want to export them in a different format. After deciding which monitoring
+solution you'd like to use to collect and store the metrics. In the Grafana observability stack, that tool is Prometheus.
+
+After including prometheus actuator endpoint, we can remove the more generic **metrics** endpoint since we're not going to use it anymore.
+The default strategy used by Prometheus is pull-based, meaning that a Prometheus instance scrapes (pulls) metrics in regular time intervals from the application
+via a dedicated endpoint, which is /actuator/prometheus (we have renamed the base path for actuator to **/management**) in the Spring Boot scenario.
+
+To check the result, call Prometheus endpoint:
+
+`$ http :9001/management/prometheus`
+
+This format is based on plain text and is called Prometheus exposition format. Given the wide adoption of Prometheus for generating and exporting metrics, this
+format has been polished and standardized in OpenMetrics (https://openmetrics.io), a CNCF-incubating project. Spring Boot supports both the original Prometheus
+format (the default behavior) and OpenMetrics, depending on the Accept header of the HTTP request. If you'd like to get metrics according to the OpenMetrics
+format, you need to ask for it explicitly:
+
+`$ http :9001/management/prometheus 'Accept:application/openmetrics-text; version=1.0.0;  charset=utf-8'`
+
+**Monitoring architecture for cloud native applications based on the Grafana stack**
+
+![](https://github.com/sanjayrawat1/bookshop/blob/main/catalog-service/diagrams/monitoring-architecture-using-grafana-stack.drawio.svg)
+
+##### Configuring Prometheus metrics in Kubernetes
+When running applications in Kubernetes, we can use dedicated annotations to mark which containers the Prometheus server should scrape and inform it about the
+HTTP endpoint and port number to call.
+Annotations in Kubernetes manifests should be of type String, which is why quotes are needed in the case of values that could be mistakenly parsed as numbers or
+Boolean.
