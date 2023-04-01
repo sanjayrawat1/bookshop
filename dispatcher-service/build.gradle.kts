@@ -22,6 +22,7 @@ repositories {
 }
 
 extra["springCloudVersion"] = "2022.0.1"
+extra["otelVersion"] = "1.24.0"
 
 dependencies {
     // spring-boot-starter and spring-cloud-function-context dependencies are already included by spring cloud stream.
@@ -34,6 +35,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     compileOnly("org.projectlombok:lombok")
     runtimeOnly("io.micrometer:micrometer-registry-prometheus")
+    runtimeOnly("io.opentelemetry.javaagent:opentelemetry-javaagent:${property("otelVersion")}")
     annotationProcessor("org.projectlombok:lombok")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
