@@ -23,6 +23,7 @@ repositories {
 
 extra["springCloudVersion"] = "2022.0.1"
 extra["testcontainersVersion"] = "1.17.6"
+extra["otelVersion"] = "1.24.0"
 
 dependencies {
     implementation("org.springframework.cloud:spring-cloud-starter-gateway")
@@ -36,6 +37,7 @@ dependencies {
     compileOnly("org.projectlombok:lombok")
     runtimeOnly("io.micrometer:micrometer-registry-prometheus")
     runtimeOnly("io.github.resilience4j:resilience4j-micrometer")
+    runtimeOnly("io.opentelemetry.javaagent:opentelemetry-javaagent:${property("otelVersion")}")
     annotationProcessor("org.projectlombok:lombok")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
