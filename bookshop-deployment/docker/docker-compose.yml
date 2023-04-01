@@ -25,8 +25,7 @@ services:
       - SPRING_CLOUD_CONFIG_URI=http://config-service:8888
       - SPRING_DATASOURCE_URL=jdbc:postgresql://bookshop-postgres:5432/bookshop_catalog
       - SPRING_PROFILES_ACTIVE=test-data
-      # You can use the container name (bookshop-keycloak:8080), which gets resolved by the built-in Docker DNS.
-      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://host.docker.internal:8080/realms/Bookshop
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://bookshop-keycloak:8080/realms/Bookshop
       # Instructs the JVM to run the OpenTelemetry Java agent from the path where Cloud Native Buildpacks placed the application dependencies.
       - JAVA_TOOL_OPTIONS=-javaagent:/workspace/BOOT-INF/lib/opentelemetry-javaagent-1.24.0.jar
       # The name of the application, used to tag the traces produced by Catalog Service.
@@ -61,8 +60,7 @@ services:
       - SPRING_R2DBC_URL=r2dbc:postgresql://bookshop-postgres:5432/bookshop_order
       - SPRING_FLYWAY_URL=jdbc:postgresql://bookshop-postgres:5432/bookshop_order
       - SPRING_RABBITMQ_HOST=bookshop-rabbitmq
-      # You can use the container name (bookshop-keycloak:8080), which gets resolved by the built-in Docker DNS.
-      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://host.docker.internal:8080/realms/Bookshop
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://bookshop-keycloak:8080/realms/Bookshop
       - JAVA_TOOL_OPTIONS=-javaagent:/workspace/BOOT-INF/lib/opentelemetry-javaagent-1.24.0.jar
       - OTEL_SERVICE_NAME=order-service
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4317
@@ -116,8 +114,7 @@ services:
       - SPRING_CLOUD_CONFIG_URI=http://config-service:8888
       - SPRING_DATA_REDIS_HOST=bookshop-redis
       - SPA_URL=http://bookshop-ui:9004
-      # You can use the container name (bookshop-keycloak:8080), which gets resolved by the built-in Docker DNS.
-      - SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_ISSUER_URI=http://host.docker.internal:8080/realms/Bookshop
+      - SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_ISSUER_URI=http://bookshop-keycloak:8080/realms/Bookshop
       - JAVA_TOOL_OPTIONS=-javaagent:/workspace/BOOT-INF/lib/opentelemetry-javaagent-1.24.0.jar
       - OTEL_SERVICE_NAME=edge-service
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4317
