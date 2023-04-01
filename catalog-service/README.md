@@ -846,3 +846,66 @@ When running applications in Kubernetes, we can use dedicated annotations to mar
 HTTP endpoint and port number to call.
 Annotations in Kubernetes manifests should be of type String, which is why quotes are needed in the case of values that could be mistakenly parsed as numbers or
 Boolean.
+
+#### Distributed tracing with OpenTelemetry and Tempo
+Event logs, health probes, and metrics provide a wide variety of valuable data for inferring the internal state of an application. However, none of them
+consider that cloud native applications are distributed systems. A user request is likely to be processed by multiple applications, but so far we have no way
+to correlate data across application boundaries.
+
+A simple way to solve that problem could be to generate an identifier for each request at the edge of the system (a correlation ID), use it in event logs, and
+pass it over to the other services involved. By using that correlation ID, we could fetch all log messages related to a particular transaction from multiple
+applications.
+
+If we follow that idea further, we'll get to distributed tracing, a technique for tracking requests as they flow through a distributed system, letting us
+localize where errors occur and troubleshoot performance issues. There are three main concepts in distributed tracing:
+* A trace represents the activities associated with a request or a transaction, identified uniquely by a trace ID. It's composed of one or more spans across
+one or more services.
+* Each step of the request processing is called a span, characterized by start and end timestamps and identified uniquely by the pair trace ID and span ID.
+* Tags are metadata that provide additional information regarding the span context, such as the request URI, the username of the currently logged-in user, or
+the tenant identifier.
+
+In Bookshop, you can fetch books through the gateway (Edge Service), and the request is then forwarded to Catalog Service. The trace related to handling such a
+request would involve these two applications and at least three spans:
+* The first span is the step performed by Edge Service to accept the initial HTTP request.
+* The second span is the step performed by Edge Service to route the request to Catalog Service.
+* The third span is the step performed by Catalog Service to handle the routed request.
+
+There are multiple choices related to distributed tracing systems. First, we must choose the format and protocol we'll use to generate and propagate traces.
+For this we'll use OpenTelemetry (also called OTel ), a CNCF-incubating project that is quickly becoming the de facto standard for distributed tracing and aims
+at unifying the collection of telemetry data (https://opentelemetry.io).
+
+**OpenTelemetry**: the ultimate framework to instrument, generate, collect, and export telemetry data (metrics, logs, and traces).
+
+Once the applications are instrumented for distributed tracing, we’ll need a tool to collect and store traces. In the Grafana observability stack, the
+distributed tracing backend of choice is Tempo, a project that lets you scale tracing as far as possible with minimal operational cost and less complexity than
+ever before (https://grafana.com/oss/tempo). Unlike the way we used Prometheus, Tempo follows a push-based strategy where the application itself pushes data to
+the distributed tracing backend.
+
+**Distributed tracing architecture for cloud native applications based on the Grafana stack**
+
+![](https://github.com/sanjayrawat1/bookshop/blob/main/catalog-service/diagrams/distributed-tracing-architecture-using-grafana-stack.drawio.svg)
+
+##### Configuring tracing in Spring Boot with OpenTelemetry
+The OpenTelemetry project includes instrumentation that generates traces and spans for the most common Java libraries, including Spring, Tomcat, Netty, Reactor,
+JDBC, Hibernate, and Logback. The OpenTelemetry Java Agent is a JAR artifact provided by the project that can be attached to any Java application. It injects
+the necessary bytecode dynamically to capture traces and spans from all those libraries, and it exports them in different formats without you having to change
+your Java source code.
+
+Besides instrumenting the Java code to capture traces, the OpenTelemetry Java Agent also integrates with SLF4J (and its implementation). It provides trace and
+span identifiers as contextual information that can be injected into log messages through the MDC abstraction provided by SLF4J. That makes it extremely simple
+to navigate from log messages to traces and vice versa, achieving better visibility into the application than querying the telemetry in isolation.
+
+Let's expand on the default log format used by Spring Boot and add the following contextual information:
+* Application name (value from the spring.application.name property we configured for all applications)
+* Trace identifier (value from the trace_id field populated by the OpenTelemetry agent, when enabled)
+* Span identifier (value from the span_id field populated by the OpenTelemetry agent, when enabled)
+
+```yaml
+logging:
+  pattern:
+    level: "%5p [${spring.application.name},%X{trace_id},%X{span_id}]”
+```
+
+To check the traces, navigate to http://localhost:3000. On the Explore page, check the logs for Catalog Service ({container_name="/catalog-service"}), much like
+we did earlier. Next, click on the most recent log message to get more details. You'll see a Tempo button next to the trace identifier associated with that log
+message. If you click that, Grafana redirects you to the related trace using data from Tempo.
