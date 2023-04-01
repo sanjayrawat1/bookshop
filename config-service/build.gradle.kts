@@ -51,6 +51,10 @@ tasks.bootBuildImage {
     }
 }
 
+springBoot {
+    buildInfo()
+}
+
 spotless {
     java {
         toggleOffOn()
