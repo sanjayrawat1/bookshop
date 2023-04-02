@@ -909,3 +909,45 @@ logging:
 To check the traces, navigate to http://localhost:3000. On the Explore page, check the logs for Catalog Service ({container_name="/catalog-service"}), much like
 we did earlier. Next, click on the most recent log message to get more details. You'll see a Tempo button next to the trace identifier associated with that log
 message. If you click that, Grafana redirects you to the related trace using data from Tempo.
+
+#### Using ConfigMaps and Secrets in Kubernetes
+ConfigMaps let you store configuration data in a structured, maintainable way. They can be version-controlled together with the rest of your Kubernetes
+deployment manifests and have the same nice properties of a dedicated configuration repository, including data persistence, auditing, and accountability.
+
+A ConfigMap is an API object used to store non-confidential data in key-value pairs. Pods can consume ConfigMaps as environment variables, command-line
+arguments, or as configuration files in a volume (https://kubernetes.io/docs/concepts/configuration/configmap).
+
+You can build a ConfigMap starting with a literal key/value pair string, with a file (for example, .properties or .yml), or even with a binary object. When
+working with Spring Boot applications, the most straightforward way to build a ConfigMap is to start with a property file.
+
+Like the other Kubernetes objects we have worked with so far, manifests for ConfigMaps can be applied to a cluster using the Kubernetes CLI. Open a Terminal
+window, navigate to Catalog Service project), and run the following command:
+
+`$ kubectl apply -f k8s/configmap.yml`
+
+You can verify that the ConfigMap has been created correctly with this command:
+
+`$ kubectl get cm -l app=catalog-service`
+
+The values stored in a ConfigMap can be used to configure containers running in a few different ways:
+* Use a ConfigMap as a configuration data source to pass command-line arguments to the container.
+* Use a ConfigMap as a configuration data source to populate environment variables for the container.
+* Mount a ConfigMap as a volume in the container.
+
+Spring Boot supports externalized configuration in many ways, including via command-line arguments and environment variables. Passing configuration data as
+command-line arguments or environment variables to containers has its drawbacks, even if it is stored in a ConfigMap. For example, whenever you add a property
+to a ConfigMap, you must update the Deployment manifest. When a ConfigMap is changed, the Pod is not informed about it and must be re-created to read the new
+configuration. Both those issues are solved by mounting ConfigMaps as volumes.
+
+When a ConfigMap is mounted as a volume to a container, it generates two possible outcomes:
+* If the ConfigMap includes an embedded property file, mounting it as a volume results in the property file being created in the mounted path. Spring Boot
+automatically finds and includes any property files located in a /config folder either in the same root as the application executable or in a subdirectory, so
+it's the perfect path for mounting a ConfigMap. You can also specify additional locations to search for property files via the
+spring.config.additional-location=<path> configuration property.
+* If the ConfigMap includes key/value pairs, mounting it as a volume results in a config tree being created in the mounted path. For each key/value pair, a file
+is created, named like the key and containing the value. Spring Boot supports reading configuration properties from a config tree. You can specify where the
+config tree should be loaded from via the spring.config.import=configtree:<path> property.
+
+**ConfigMaps mounted as volumes can be consumed by Spring Boot as property files or as config trees.**
+
+![](https://github.com/sanjayrawat1/bookshop/blob/main/catalog-service/diagrams/k8s-configmap-mount-as-volume.drawio.svg)

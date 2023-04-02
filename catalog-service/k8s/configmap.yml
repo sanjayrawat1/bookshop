@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  # The name of the ConfigMap
+  name: catalog-config
+  labels:
+    app: catalog-service
+# Section containing the configuration data
+data:
+  # A key/value pair where the key is the name of a YAML configuration file and the value is its content
+  application.yml: |
+    bookshop:
+      greeting: Welcome to the book catalog from Kubernetes!
+    spring:
+      datasource:
+        url: jdbc:postgresql://bookshop-postgres/bookshop_catalog
+      security:
+        oauth2:
+          resource-server:
+            jwt:
+              issuer-uri: http://bookshop-keycloak/realms/Bookshop

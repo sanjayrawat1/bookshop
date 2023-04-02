@@ -1,0 +1,8 @@
+spring:
+  config:
+    # Imports configuration data from a config server when available.
+    import: "optional:configserver:"
+  cloud:
+    config:
+      # Enables the Spring Cloud Config Client integration.
+      enabled: true
