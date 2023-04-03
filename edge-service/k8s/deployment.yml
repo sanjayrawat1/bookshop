@@ -33,14 +33,8 @@ spec:
               value: http://catalog-service
             - name: ORDER_SERVICE_URL
               value: http://order-service
-            - name: SPRING_CLOUD_CONFIG_URI
-              value: http://config-service
-            - name: SPRING_DATA_REDIS_HOST
-              value: bookshop-redis
             - name: SPA_URL
               value: http://bookshop-ui
-            - name: SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_ISSUER_URI
-              value: http://bookshop-keycloak/realms/Bookshop
           # configuration for the liveness probe.
           livenessProbe:
             # uses and HTTP GET request to get the liveness state.

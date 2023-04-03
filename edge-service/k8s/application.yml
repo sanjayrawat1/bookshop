@@ -1,0 +1,13 @@
+spring:
+  data:
+    redis:
+      host: bookshop-redis
+  security:
+    oauth2:
+      client:
+        provider:
+          keycloak:
+            issuer-uri: http://bookshop-keycloak/realms/bookshop
+
+bookshop:
+  greeting: Welcome to the book edge service from a development Kubernetes environment!
