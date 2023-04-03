@@ -54,9 +54,9 @@ jobs:
           kubectl: 1.24.3
           # includes Kubeval in the installation.
           kubeval: 0.16.1
-          # use Kubeval to validate the kubernetes manifests in the k8s folder.
+          # Uses Kustomize to generate the manifests and then validates them with Kubeval.
           command: |
-            kubeval --strict -d ${{ matrix.project }}/k8s
+            kustomize build ${{ matrix.project }}/k8s | kubeval --strict -
   # The job’s unique identifier - package
   package:
     name: Package and Publish ${{ matrix.project }}
