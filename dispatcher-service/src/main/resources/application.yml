@@ -39,10 +39,12 @@ spring:
     ansi:
       console-available: true
   config:
-    # Imports configuration data from a config server when available.
-    import: "optional:configserver:"
+    # Stops importing configuration data from Config Service.
+    import: ""
   cloud:
     config:
+      # Disables the Spring Cloud Config Client integration.
+      enabled: false
       # The URL of the config server.
       uri: http://localhost:8888
       # Timeout on waiting to connect to the config server (ms).
