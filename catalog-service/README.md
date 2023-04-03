@@ -983,3 +983,33 @@ Verify that the bookshop.greeting value specified in the ConfigMap is used inste
 `Welcome to the book catalog from Kubernetes!`
 
 ConfigMaps are convenient for providing configuration data to applications running on Kubernetes. But what if we had to pass sensitive data?
+
+#### Storing sensitive information with Secrets (or not)
+The most critical part of configuring applications is managing secret information like passwords, certificates, tokens, and keys. Kubernetes provides a Secret
+object to hold such data and pass it to containers.
+
+A Secret is an API object used to store and manage sensitive information, such as passwords, OAuth tokens, and ssh keys. Pods can consume Secrets as environment
+variables or configuration files in a volume
+
+What makes this object secret is the process used to manage it. By themselves, Secrets are just like ConfigMaps. The only difference is that data in a Secret is
+usually Base64-encoded, a technical choice made to support binary files. Any Base64-encoded object can be decoded in a very straightforward way. It's a common
+mistake to think that Base64 is a kind of encryption. If you remember only one thing about Secrets, make it the following: Secrets are not secret!
+
+One way of creating a Secret is using the Kubernetes CLI with an imperative approach, generate a test-credentials Secret object using following command:
+
+`$ kubectl create secret generic test-credentials --from-literal=test.username=user --from-literal=test.password=password`
+
+Verify that the Secret has been created successfully:
+
+`$ kubectl get secret test-credentials`
+
+Retrieve the internal representation of the Secret object in YAML format:
+
+`$ kubectl get secrets test-credentials -o yaml`
+
+Since Secrets are not encrypted, we can't include them in a version control system. It's up to the platform engineers to ensure that Secrets are adequately protected.
+
+What if your secrets are stored in a dedicated backend like HashiCorp Vault or Azure Key Vault? In that case, you can use a project like External Secrets
+(https://github.com/external-“secrets/kubernetes-external-secrets). This project lets you generate a Secret from an external source. The ExternalSecret object
+would be safe to store in your repository and put under version control. When the ExternalSecret manifest is applied to a Kubernetes cluster, the External
+Secrets controller fetches the value from the configured external source and generates a standard Secret object that can be used within a Pod.
