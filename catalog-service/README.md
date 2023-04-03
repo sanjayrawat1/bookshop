@@ -940,14 +940,46 @@ to a ConfigMap, you must update the Deployment manifest. When a ConfigMap is cha
 configuration. Both those issues are solved by mounting ConfigMaps as volumes.
 
 When a ConfigMap is mounted as a volume to a container, it generates two possible outcomes:
-* If the ConfigMap includes an embedded property file, mounting it as a volume results in the property file being created in the mounted path. Spring Boot
+1. If the ConfigMap includes an embedded property file, mounting it as a volume results in the property file being created in the mounted path. Spring Boot
 automatically finds and includes any property files located in a /config folder either in the same root as the application executable or in a subdirectory, so
 it's the perfect path for mounting a ConfigMap. You can also specify additional locations to search for property files via the
 spring.config.additional-location=<path> configuration property.
-* If the ConfigMap includes key/value pairs, mounting it as a volume results in a config tree being created in the mounted path. For each key/value pair, a file
+2. If the ConfigMap includes key/value pairs, mounting it as a volume results in a config tree being created in the mounted path. For each key/value pair, a file
 is created, named like the key and containing the value. Spring Boot supports reading configuration properties from a config tree. You can specify where the
 config tree should be loaded from via the spring.config.import=configtree:<path> property.
 
 **ConfigMaps mounted as volumes can be consumed by Spring Boot as property files or as config trees.**
 
 ![](https://github.com/sanjayrawat1/bookshop/blob/main/catalog-service/diagrams/k8s-configmap-mount-as-volume.drawio.svg)
+
+When configuring Spring Boot applications, the first option is the most convenient, since it uses the same property file format used for the default
+configuration inside the application. To mount the ConfigMap into the Catalog Service container we need to apply three changes:
+1. Remove the environment variables for the values we declared in the ConfigMap.
+2. Declare a volume generated from the catalog-config ConfigMap.
+3. Specify a volume mount for the catalog-service container to load the ConfigMap as an application.yml file from /workspace/config. The /workspace folder is
+4. created and used by Cloud Native Buildpacks to host the application executables, so Spring Boot will automatically look for a /config folder in the same path
+5. and load any property files contained within. There’s no need to configure additional locations.
+
+To test, first, we must package the application as a container image and load it into the cluster by running following commands:
+
+`$ ./gradlew bootBuildImage`
+
+`$ minikube image load catalog-service --profile bookshop`
+
+`$ kubectl apply -f k8s`
+
+You can verify when Catalog Service is available and ready to accept requests with this command:
+
+`$ kubectl get deploy -l app=catalog-service`
+
+Next, forward traffic from your local machine to the Kubernetes cluster by running the following command:
+
+`$ kubectl port-forward service/catalog-service 9001:80`
+
+Verify that the bookshop.greeting value specified in the ConfigMap is used instead of the default one:
+
+`$ http :9001/`
+
+`Welcome to the book catalog from Kubernetes!`
+
+ConfigMaps are convenient for providing configuration data to applications running on Kubernetes. But what if we had to pass sensitive data?

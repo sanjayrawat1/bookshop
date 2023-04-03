@@ -42,15 +42,8 @@ spec:
           env:
             - name: BPL_JVM_THREAD_COUNT
               value: "50"
-            - name: SPRING_CLOUD_CONFIG_URI
-              value: http://config-service
-            - name: SPRING_DATASOURCE_URL
-              # the hostname part of the URL is the name of the Service object that was used to expose the database.
-              value: jdbc:postgresql://bookshop-postgres/bookshop_catalog
             - name: SPRING_PROFILES_ACTIVE
               value: test-data
-            - name: SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI
-              value: http://bookshop-keycloak/realms/Bookshop
           # configuration for the liveness probe.
           livenessProbe:
             # uses and HTTP GET request to get the liveness state.
@@ -70,3 +63,15 @@ spec:
               port: 9001
             initialDelaySeconds: 5
             periodSeconds: 15
+          # Mounts the ConfigMap in the container as a volume
+          volumeMounts:
+            - name: catalog-config-volume
+              # Spring Boot will automatically find and include property files from this folder.
+              mountPath: /workspace/config
+      # Defines volumes for the Pod
+      volumes:
+        # The name of the volume
+        - name: catalog-config-volume
+          # The ConfigMap from which to create a volume
+          configMap:
+            name: catalog-config
