@@ -131,3 +131,62 @@ page from left menu, choose Loki as the data source, choose last 1 hour from the
 produced by the **catalog-service** container:
 
 `{container_name="/catalog-service"}`
+
+#### Managing Kubernetes configuration for multiple environments with Kustomize
+For each environment, we can specify _patches_ to apply changes or additional configurations on top of those basic manifests. All the customization steps will
+be applied without changing anything in the application source code but using the same release artifacts produced earlier. That's quite a powerful concept and
+one of the main features of cloud native applications.
+
+The Kustomize approach to configuration customization is based on the concepts of bases and overlays. The k8s folder we created in the Catalog Service project
+can be considered a base : a directory with a kustomization.yml file that combines Kubernetes manifests and customizations. An overlay is another directory with
+a kustomization.yml file. What makes it special is that it defines customizations in relation to one or more bases and combines them. Starting from the same
+base, you can specify an overlay for each deployment environment (such as development, test, staging, and production).
+
+Each Kustomization includes a kustomization.yml file. The one acting as the base composes together several Kubernetes resources like Deployments, Services, and
+ConfigMaps. Also, it’s not aware of the overlays, so it’s completely independent of them. The overlays use one or more bases as a foundation and provide
+additional configuration via patches.
+
+**Kustomize bases can be used as the foundation for further customizations (overlays) depending on the deployment environment.**
+
+![](https://github.com/sanjayrawat1/bookshop/blob/main/bookshop-deployment/diagrams/customizing-configuration-for-multiple-environment-with-kustomize.drawio.svg)
+
+Bases and overlays can be defined either in the same repository or different ones. We'll use the k8s folder in each application project as a base and define
+overlays in the bookshop-deployment repository. You can decide whether to keep your deployment configuration in the same repository as your application or not.
+I decided to go for a separate repository for a few reasons:
+* It makes it possible to control the deployment of all the system components from a single place.
+* It allows focused version-control, auditing, and compliance checks before deploying anything to production.
+* It fits the GitOps approach, where delivery and deployment tasks are decoupled.
+
+Another decision to make is whether to keep the base Kubernetes manifests together with the application source code or move them to the deployment repository.
+I decided to go with the first approach for the Bookshop example, similar to what we did with the default configuration properties. One of the benefits is that
+it makes it simple to run each application on a local Kubernetes cluster during development, either directly or using Tilt.
+
+After defining overlay kustomization, like, a patch for customizing environment variables, ConfigMaps, image name and version, replicas for container, it's time
+to test it.
+
+Run staging overlay for catalog-service, navigate to applications/catalog-service/staging folder and run following command:
+
+`$ kubectl apply -k .`
+
+You can monitor the operation’s result via the Kubernetes CLI (`$ kubectl get pod -l app=catalog-service`)
+
+The application is not exposed outside the k8s cluster, use port-forwarding functionality to forward traffic from local env on port 9001 to service running in
+the cluster on port 80
+
+`$ kubectl port-forward service/catalog-service 9001:80`
+
+and then test the catalog-service greeting endpoint, the result will be the customized message defined in the application-staging.yml file
+
+Verify the number of replicas we applied through the customization:
+
+`$ kubectl get pod -l app=catalog-service`
+
+You can check which node each Pod has been allocated on with:
+
+`$ kubectl get pod -o wide`
+
+You can also try to update the application-staging.yml file, apply the Kustomization to the cluster again (kubectl apply -k .), and see how the Catalog Service
+Pods are restarted one after the other (rolling restarts) to load the new ConfigMap with zero downtime. To visualize the sequence of events, you can either use
+Octant or launch this command on a separate Terminal window before applying the Kustomization: 
+
+`$ kubectl get pods -l app=catalog-service --watch`
