@@ -1,0 +1,6 @@
+spring:
+  rabbitmq:
+    host: bookshop-rabbitmq
+
+bookshop:
+  greeting: Welcome to the book dispatcher from a development Kubernetes environment!
