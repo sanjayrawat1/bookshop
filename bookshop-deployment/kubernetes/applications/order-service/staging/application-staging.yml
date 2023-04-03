@@ -1,0 +1,2 @@
+bookshop:
+  greeting: Welcome to the book order from a staging Kubernetes environment!
