@@ -10,7 +10,7 @@ custom_build(
 
 # Deploy
 k8s_yaml(
-    ['k8s/deployment.yml', 'k8s/service.yml']
+    kustomize('k8s')
 )
 
 # Manage

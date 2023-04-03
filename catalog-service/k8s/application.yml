@@ -1,0 +1,11 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://bookshop-postgres/bookshop_catalog
+  security:
+    oauth2:
+      resource-server:
+        jwt:
+          issuer-uri: http://bookshop-keycloak/realms/Bookshop
+
+bookshop:
+  greeting: Welcome to the book catalog from a development Kubernetes environment!

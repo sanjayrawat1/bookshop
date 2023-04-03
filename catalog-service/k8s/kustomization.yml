@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Kubernetes manifests that Kustomize should manage and process
+resources:
+  - deployment.yml
+  - service.yml
+
+# The section containing information to generate ConfigMaps
+configMapGenerator:
+  - name: catalog-config
+    # Uses a property file as the source for a ConfigMap
+    files:
+      - application.yml
+    options:
+      # Defines the labels to assign to the generated ConfigMap
+      labels:
+        app: catalog-service
