@@ -1,0 +1,16 @@
+spring:
+  flyway:
+    url: jdbc:postgresql://bookshop-postgres/bookshop_order
+  r2dbc:
+    url: r2dbc:postgresql://bookshop-postgres/bookshop_order
+  rabbitmq:
+    host: bookshop-rabbitmq
+  security:
+    oauth2:
+      resource-server:
+        jwt:
+          issuer-uri: http://bookshop-keycloak/realms/Bookshop
+
+bookshop:
+  greeting: Welcome to the book order from a development Kubernetes environment!
+  catalog-service-uri: http://catalog-service
