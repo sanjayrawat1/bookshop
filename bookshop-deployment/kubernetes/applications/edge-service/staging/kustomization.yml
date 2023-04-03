@@ -1,0 +1,23 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - github.com/sanjayrawat1/bookshop/edge-service/k8s?ref=main
+
+patchesStrategicMerge:
+  - patch-env.yml
+
+configMapGenerator:
+  - name: edge-config
+    behavior: merge
+    files:
+      - application-staging.yml
+
+images:
+  - name: edge-service
+    newName: ghcr.io/sanjayrawat1/edge-service
+    newTag: latest
+
+replicas:
+  - name: edge-service
+    count: 1
