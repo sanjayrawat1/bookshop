@@ -5,7 +5,7 @@ env:
   REGISTRY: ghcr.io
   # IMAGE_NAME: <your_github_username>/catalog-service
   IMAGE_NAME: sanjayrawat1/catalog-service
-  VERSION: latest
+  VERSION: ${{ github.sha }}
 
 jobs:
   # The job’s unique identifier - build
@@ -100,5 +100,11 @@ jobs:
           # The token needed to authenticate with the registry, provided by GitHub Actions.
           password: ${{ secrets.GITHUB_TOKEN }}
       # Pushes the release candidate to the registry.
+      # Publishes a release candidate with a version equal to the Git commit hash
       - name: Publish container image
         run: docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
+      # Adds the "latest" tag to the newest release candidate
+      - name: Publish container image (latest)
+        run: |
+          docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
