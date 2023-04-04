@@ -1,0 +1,30 @@
+name: Acceptance Stage
+on:
+  # This workflow is triggered when the Commit Stage workflow completes a run.
+  workflow_run:
+    workflows: ['Commit Stage']
+    types: [completed]
+    branches: main
+# Ensures that only one workflow runs at a time.
+concurrency: acceptance
+
+jobs:
+  functional:
+    name: Functional Acceptance Tests
+    # The job runs only if the commit stage completed successfully.
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-22.04
+    steps:
+      - run: echo "Running functional acceptance tests"
+  performance:
+    name: Performance Tests
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-22.04
+    steps:
+      - run: echo "Running performance tests"
+  security:
+    name: Security Tests
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-22.04
+    steps:
+      - run: echo "Running security tests"
