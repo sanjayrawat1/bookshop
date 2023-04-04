@@ -1073,3 +1073,21 @@ Kustomization again:
 `kubectl apply -k k8s`
 
 Kustomize will generate a new ConfigMap with a different suffix hash, triggering a rolling restart of all the Catalog Service instances.
+
+#### Acceptance stage of deployment pipeline
+The acceptance stage of the deployment pipeline is triggered whenever a new release candidate is published to the artifact repository at the end of the commit
+stage. It consists of deploying the application to a production-like environment and running additional tests to increase the confidence in its releasability.
+
+**The Agile Testing Quadrants are a taxonomy helpful for planning a software testing strategy.**
+
+![](https://github.com/sanjayrawat1/bookshop/blob/main/catalog-service/diagrams/agile-testing-quadrants.drawio.svg)
+
+In the commit stage, we mainly focus on the first quadrant, including unit and integration tests. They are technology-facing tests that support the team,
+ensuring they build the software right. On the other hand, the acceptance stage focuses on the second and fourth quadrants and tries to eliminate the need for
+manual regression testing. This stage includes functional and non-functional acceptance tests.
+
+If a release candidate passes all the tests in the acceptance stage, that means it’s in a releasable state and can be delivered and deployed to production.
+
+**The commit stage goes from code commit to a release candidate, which then goes through the acceptance stage. If it passes all the tests, it’s ready for production.**
+
+![](https://github.com/sanjayrawat1/bookshop/blob/main/catalog-service/diagrams/deployment-pipeline-from-code-commit-to-acceptance.drawio.svg)
