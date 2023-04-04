@@ -373,3 +373,32 @@ $ kubectl create secret generic polar-redis-credentials
     --from-literal=spring.redis.password=<redis_password>
      --from-literal=spring.redis.ssl=true
 ```
+
+#### Running RabbitMQ using a Kubernetes Operator
+We initialized and configured PostgreSQL and Redis servers that are offered and managed by the platform. We can't do the same for RabbitMQ because DigitalOcean
+doesn't have a RabbitMQ offering, similar to other cloud providers like Azure or GCP.
+
+A popular and convenient way of deploying and managing services like RabbitMQ in a Kubernetes cluster is to use the operator pattern. Operators are software
+extensions to Kubernetes that make use of custom resources to manage applications and their components (https://kubernetes.io/docs/concepts/extend-kubernetes/operator).
+
+To use it in production, you'll need to configure it for high availability and resilience. Depending on the workload, you might want to scale it dynamically.
+When a new version of the software is available, you'll need a reliable way of upgrading the service and migrating existing constructs and data.
+You could perform all those tasks manually. Or you could use an Operator to capture all those operational requirements and instruct Kubernetes to take care of
+them automatically. In practice, an Operator is an application that runs on Kubernetes and interacts with its API to accomplish its functionality.
+
+The RabbitMQ project provides an official Operator to run the event broker on a Kubernetes cluster.
+
+Navigate to the kubernetes/platform/production/rabbitmq folder, and run the following command to deploy RabbitMQ to production Kubernetes cluster:
+
+```shell
+$ ./deploy.sh
+```
+
+The script will output details about all the operations performed to deploy RabbitMQ. Finally, it will create a bookshop-rabbitmq-credentials Secret with the
+credentials that Order Service and Dispatcher Service will need to access RabbitMQ. You can verify that the Secret has been successfully created as follows:
+
+```shell
+$ kubectl get secrets bookshop-rabbitmq-credentials
+```
+The RabbitMQ broker is deployed in a dedicated **rabbitmq-system** namespace. Applications can interact with it at
+**bookshop-rabbitmq.rabbitmq-system.svc.cluster.local** on port **5672**
