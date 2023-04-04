@@ -190,3 +190,91 @@ Pods are restarted one after the other (rolling restarts) to load the new Config
 Octant or launch this command on a separate Terminal window before applying the Kustomization: 
 
 `$ kubectl get pods -l app=catalog-service --watch`
+
+### Kubernetes in production with DigitalOcean
+Before moving on, you need to ensure that you have a DigitalOcean account. When you sign up, DigitalOcean offers a 60-day free trial with a $200 credit. Follow
+the instructions on the official website to create an account and start a free trial (https://try.digitalocean.com/freetrialoffer).
+
+There are two main options for interacting with the DigitalOcean platform. The first one is through the web portal (https://cloud.digitalocean.com), which is
+very convenient for exploring the available services and their features. The second option is via doctl, the DigitalOcean CLI. We're going to use the 2nd option.
+
+You can find instructions for installing doctl on the official website (https://docs.digitalocean.com/reference/doctl/how-to/install).
+Install the doctl using homebrew on macOS:
+
+`$ brew install doctl`
+
+You can follow the subsequent instructions on the same doctl page to generate an API token and grant doctl access to your DigitalOcean account.
+
+Once API token is generated, grant doctl access to DigitalOcean account, **doctl auth init --context <context-name>**. Pass in the token string when prompted.
+
+`$ doctl auth init --context bookshop`
+
+List the authentication context:
+
+`$ doctl auth list`
+
+Switch the authentication context:
+
+`$ doctl auth switch --context bookshop`
+
+Validate that doctl is working:
+
+`$ doctl account get`
+
+#### Running a Kubernetes cluster on DigitalOcean
+The first resource we need to create on DigitalOcean is a Kubernetes cluster. You could rely on the IaaS capabilities offered by the platform and install a
+Kubernetes cluster manually on top of virtual machines. Instead, we’ll move up the abstraction staircase and go for a solution managed by the platform. When we
+use DigitalOcean Kubernetes (https://docs.digitalocean.com/products/kubernetes), the platform will take care of many infrastructural concerns, so that we
+developers can focus more on application development.
+
+Each cloud resource can be created in a data center hosted in a specific geographical region. For better performance, I recommend you choose one near to you.
+I'll use "Bangalore 1" (blr1), but you can get the complete list of regions with the following command:
+
+`$ doctl k8s options regions`
+
+Let's go ahead and initialize a Kubernetes cluster using DigitalOcean Kubernetes (DOKS). It will be composed of three worker nodes, for which you can decide the
+technical specifications. You can choose between different options in terms of CPU, memory, and architecture. I'll use nodes with 2 vCPU and 4 GB of memory:
+
+`$ doctl k8s cluster create bookshop-cluster --node-pool "name=basicnp;size=s-2vcpu-4gb;count=3;label=type=basic;" --region blr1`
+
+##### Explanation of above command
+| command breakdown                                                     | description                                              |
+|-----------------------------------------------------------------------|----------------------------------------------------------|
+| doctl k8s cluster create bookshop-cluster                             | defines the name of the cluster to create                |
+| --node-pool "name=basicnp;size=s-2vcpu-4gb;count=3;label=type=basic;" | provides the requested specification for the worker node |
+| --region blr1                                                         | the data center region of your choice, such as "blr1"    |
+
+If you'd like to know more about the different compute options and their prices, you can use the **doctl compute size list** command.
+
+The cluster provisioning will take a few minutes. In the end, it will print out the unique ID assigned to the cluster. Take note, since you'll need it later.
+You can fetch the cluster ID at any time by running the following command:
+
+`$ doctl k8s cluster list`
+
+At the end of the cluster provisioning, doctl will also configure the context for your Kubernetes CLI so that you can interact with the cluster running on
+DigitalOcean from your computer, similar to what you've done so far with your local cluster. You can verify the current context for kubectl by running the
+following command:
+
+`$ kubectl config current-context`
+
+If you want to change the context, you can run **kubectl config use-context <context-name>**.
+
+Once the cluster is provisioned, you can get information about the worker nodes as follows:
+
+`$ kubectl get nodes`
+
+As you used Octant dashboard to visualize the workloads on your local Kubernetes cluster. You can now use it to get information about the cluster on
+DigitalOcean as well. Start Octant with the following command:
+
+`$ octant`
+
+Octant will open in your browser and show data from your current Kubernetes context, which should be the cluster on DigitalOcean.
+
+Kubernetes doesn't come packaged with an Ingress Controller; it's up to you to install one. Since we'll rely on an Ingress resource to allow traffic from the
+public internet to the cluster, we need to install an Ingress Controller. Let's install the same one we used locally: ingress-nginx.
+
+Navigate to the kubernetes/platform/production/ingress-nginx folder, and run the following command to deploy ingress-nginx to production Kubernetes cluster:
+
+`$ ./deploy.sh`
+
+You might need to make the script executable first with the command **chmod +x deploy.sh**.
