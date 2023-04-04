@@ -278,3 +278,68 @@ Navigate to the kubernetes/platform/production/ingress-nginx folder, and run the
 `$ ./deploy.sh`
 
 You might need to make the script executable first with the command **chmod +x deploy.sh**.
+
+#### Running a PostgreSQL database on DigitalOcean
+In local environment, you've been running PostgreSQL database instances as containers, both in Docker and in your local Kubernetes cluster. In production, we'd
+like to take advantage of the platform and use a managed PostgreSQL service provided by DigitalOcean (https://docs.digitalocean.com/products/databases/postgresql).
+
+Moving from a PostgreSQL container running in your local environment to a managed service with high availability, scalability, and resilience is a matter of
+changing the values of a few configuration properties for Spring Boot.
+
+Create a new PostgreSQL server named **bookshop-postgres**. We'll use PostgreSQL 14, which is the same version we used for development and testing. Use the
+geographical region you'd like to use. It should be the same as the region you used for the Kubernetes cluster.
+
+```shell
+$ doctl databases create bookshop-postgres --engine pg --region blr1 --version 14
+```
+
+Verify the installation status with the following command:
+
+```shell
+$ doctl databases list
+```
+
+To mitigate unnecessary attack vectors, you can configure a firewall so that the PostgreSQL server is only accessible from the Kubernetes cluster created
+previously. Use kubernetes and postgres resource ID in the following command to configure the firewall and secure access to the database server:
+
+```shell
+$ doctl databases firewalls append <postgres_id> --rule k8s:<cluster_id>
+```
+
+Next, let's create two databases to be used by Catalog Service (bookshop_catalog) and Order Service (bookshop_order). Remember to replace <postgres_id> with
+your PostgreSQL resource ID:
+
+```shell
+$ doctl databases db create <postgres_id> bookshop_catalog
+```
+
+```shell
+$ doctl databases db create <postgres_id> bookshop_order
+```
+
+Finally, let's retrieve the details for connecting to PostgreSQL. Remember to replace <postgres_id> with your PostgreSQL resource ID:
+
+```shell
+$ doctl databases connection <postgres_id> --format Host,Port,User,Password
+```
+
+Let's create some Secrets in the Kubernetes cluster with the PostgreSQL credentials required by the two applications. In a real-world scenario, we should create
+dedicated users for the two applications and grant limited privileges. For simplicity, we'll use the admin account for both.
+
+First, create a Secret for Catalog Service using the information returned by the previous doctl command:
+
+```shell
+$ kubectl create secret generic bookshop-postgres-catalog-credentials
+ --from-literal=spring.datasource.url=jdbc:postgresql://<postgres_host>:<postgres_port>/bookshop_catalog
+  --from-literal=spring.datasource.username=<postgres_username>
+   --from-literal=spring.datasource.password=<postgres_password>
+```
+
+Similarly, create a Secret for Order Service. Pay attention to the slightly different syntax required by Spring Data R2DBC for the URL:
+
+```shell
+$ kubectl create secret generic bookshop-postgres-order-credentials
+ --from-literal="spring.flyway.url=jdbc:postgresql://<postgres_host>:<postgres_port>/bookshop_order"
+  --from-literal="spring.r2dbc.url=r2dbc:postgresql://<postgres_host>:<postgres_port>/bookshop_order?ssl=true&sslMode=require"
+   --from-literal=spring.r2dbc.username=<postgres_username> --from-literal=spring.r2dbc.password=<postgres_password>
+```
