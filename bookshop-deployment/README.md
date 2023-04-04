@@ -343,3 +343,33 @@ $ kubectl create secret generic bookshop-postgres-order-credentials
   --from-literal="spring.r2dbc.url=r2dbc:postgresql://<postgres_host>:<postgres_port>/bookshop_order?ssl=true&sslMode=require"
    --from-literal=spring.r2dbc.username=<postgres_username> --from-literal=spring.r2dbc.password=<postgres_password>
 ```
+
+#### Running Redis on DigitalOcean
+In production, we'd like to take advantage of the platform and use a managed Redis service provided by DigitalOcean (https://docs.digitalocean.com/products/databases/redis/).
+
+First, create a new Redis server named bookshop-redis:
+
+```shell
+$ doctl databases create bookshop-redis --engine redis --region blr1 --version 7
+```
+
+Configure a firewall so that the Redis server is only accessible from the Kubernetes cluster:
+
+```shell
+$ doctl databases firewalls append <redis_id> --rule k8s:<cluster_id>
+```
+
+Retrieve the details for connecting to Redis:
+
+```shell
+$ doctl databases connection 22daa7fe-4da6-42a7-9a69-1b5478128227 --format Host,Port,User,Password
+```
+
+```shell
+$ kubectl create secret generic polar-redis-credentials
+ --from-literal=spring.redis.host=<redis_host>
+  --from-literal=spring.redis.port=<redis_port>
+   --from-literal=spring.redis.username=<redis_username>
+    --from-literal=spring.redis.password=<redis_password>
+     --from-literal=spring.redis.ssl=true
+```
