@@ -10,3 +10,4 @@ resources:
 patchesStrategicMerge:
   # The patch for customizing the environment variables passed to the Catalog Service container
   - patch-env.yml
+  - patch-volumes.yml

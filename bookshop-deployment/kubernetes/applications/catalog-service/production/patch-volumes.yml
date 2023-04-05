@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalog-service
+spec:
+  template:
+    spec:
+      containers:
+        - name: catalog-service
+          volumeMounts:
+            - name: postgres-credentials-volume
+              # Mounts the volume with the Secret containing the PostgreSQL credentials
+              mountPath: /workspace/secrets/postgres
+            - name: keycloak-issuer-resourceserver-secret-volume
+              # Mounts the volume with the Secret containing the Keycloak issuer URL
+              mountPath: /workspace/secrets/keycloak
+      volumes:
+        - name: postgres-credentials-volume
+          # Defines a volume from the Secret containing the PostgreSQL credentials
+          secret:
+            secretName: bookshop-postgres-catalog-credentials
+        - name: keycloak-issuer-resourceserver-secret-volume
+          # Defines a volume from the Secret containing the Keycloak issuer URL
+          secret:
+            secretName: keycloak-issuer-resourceserver-secret
