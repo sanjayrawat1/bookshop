@@ -362,11 +362,11 @@ $ doctl databases firewalls append <redis_id> --rule k8s:<cluster_id>
 Retrieve the details for connecting to Redis:
 
 ```shell
-$ doctl databases connection 22daa7fe-4da6-42a7-9a69-1b5478128227 --format Host,Port,User,Password
+$ doctl databases connection <redis_id> --format Host,Port,User,Password
 ```
 
 ```shell
-$ kubectl create secret generic polar-redis-credentials
+$ kubectl create secret generic bookshop-redis-credentials
  --from-literal=spring.redis.host=<redis_host>
   --from-literal=spring.redis.port=<redis_port>
    --from-literal=spring.redis.username=<redis_username>
@@ -402,3 +402,58 @@ $ kubectl get secrets bookshop-rabbitmq-credentials
 ```
 The RabbitMQ broker is deployed in a dedicated **rabbitmq-system** namespace. Applications can interact with it at
 **bookshop-rabbitmq.rabbitmq-system.svc.cluster.local** on port **5672**
+
+#### Running Keycloak using a Helm chart
+As with RabbitMQ, DigitalOcean doesn't provide a managed Keycloak service. The Keycloak project is working on an Operator, but it's still in beta at this time,
+so we'll deploy it using a different approach: **Helm charts**.
+
+Install Helm on your computer. You can find the instructions on the official website (https://helm.sh). If you are on macOS or Linux, you can install Helm with
+Homebrew:
+
+```shell
+$ brew install helm
+```
+
+Navigate to the kubernetes/platform/production/keycloak folder, and run the following command to deploy Keycloak to production Kubernetes cluster:
+
+```shell
+$ ./deploy.sh
+```
+
+The script will output details about all the operations performed to deploy Keycloak and print the admin username and password you can use to access the
+Keycloak Admin Console. Feel free to change the password after your first login. Note the credentials down, since you might need them later.
+
+Finally, the script will create a **bookshop-keycloak-client-credentials** Secret with the Client secret that Edge Service will need to authenticate with
+Keycloak. You can verify that the Secret has been successfully created as follows. The value is generated randomly by the script:
+
+```shell
+$ kubectl get secrets bookshop-keycloak-client-credentials
+```
+
+The Keycloak Helm chart spins up a PostgreSQL instance inside the cluster and uses it to persist the data used by Keycloak. We could have integrated it with the
+PostgreSQL service managed by DigitalOcean, but the configuration on the Keycloak side would have been quite complicated. If you'd like to use an external
+PostgreSQL database, you can refer to the Keycloak Helm chart documentation (https://bitnami.com/stack/keycloak/helm).
+
+The Keycloak server is deployed in a dedicated **keycloak-system** namespace. Applications can interact with it at
+**bookshop-keycloak.keycloak-system.svc.cluster.local** on port **8080** from within the cluster. It's also exposed outside the cluster via a public IP address.
+You can find the external IP address with the following command:
+
+```shell
+$ kubectl get service bookshop-keycloak -n keycloak-system
+```
+
+The platform might take a few minutes to provision a load balancer. During the provisioning, the EXTERNAL-IP column will show a <pending> status. Wait and try
+again until an IP address is shown. Note it down, since we're going to use it in multiple scenarios.
+
+Since Keycloak is exposed via a public load balancer, you can use the external IP address to access the Admin Console. Open a browser window, navigate to
+**http://<external-ip>/admin**, and log in with the credentials returned by the deployment script.
+
+Now that you have a public DNS name for Keycloak, you can define a couple of Secrets to configure the Keycloak integration in Edge Service (OAuth2 Client),
+Catalog Service, and Order Service (OAuth2 Resource Servers). Navigate to the kubernetes/platform/production/keycloak folder, and run the following command to
+create the Secrets that the applications will use to integrate with Keycloak. Remember to replace <external-ip> with the external IP address assigned to your
+Keycloak server:
+
+```shell
+$ ./create-secrets.sh http://<external-ip>/realms/Bookshop
+```
+
