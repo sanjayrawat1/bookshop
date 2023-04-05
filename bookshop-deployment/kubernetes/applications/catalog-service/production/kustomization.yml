@@ -27,3 +27,7 @@ images:
     newName: ghcr.io/sanjayrawat1/catalog-service
     # The new tag for the container (with your release candidate's unique identifier)
     newTag: 278ea44c59f9b1b6732991b1612624b40dca9547
+
+replicas:
+  - name: catalog-service
+    count: 2
