@@ -466,3 +466,28 @@ Navigate to the kubernetes/platform/production/bookshop-ui folder, and run the f
 $ ./deploy.sh
 ```
 
+#### Deleting all cloud resources
+When you're done experimenting with the Bookshop project, follow the instructions in this section to delete all the cloud resources created on DigitalOcean.
+That's fundamental to avoid incurring unexpected costs.
+
+First, delete the Kubernetes cluster:
+
+```shell
+$ doctl k8s cluster delete bookshop-cluster
+```
+
+Next, delete the PostgreSQL and Redis databases. You'll need to know their IDs first, so run this command to extract that information:
+
+```shell
+$ doctl databases list
+```
+
+Then go ahead and delete both of them using the resource identifiers returned by the previous command:
+
+```shell
+$ doctl databases delete <postgres-id>
+$ doctl databases delete <redis-id>
+```
+Finally, open a browser window, navigate to the DigitalOcean web interface (https://cloud.digitalocean.com), and go through the different categories of cloud
+resources in your account to verify that there’s no outstanding services. If there are, delete them. There could be load balancers or persistent volumes created
+as a side effect of creating a cluster or a database, and that may not have been deleted by the previous commands.
