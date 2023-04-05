@@ -5,3 +5,8 @@ resources:
   # Uses the manifests in your Catalog Service repo on GitHub as the base for further customizations
   # The git commit hash (sha) identifying your latest release candidate
   - github.com/sanjayrawat1/bookshop/catalog-service/k8s?ref=278ea44c59f9b1b6732991b1612624b40dca9547
+
+# Section containing the list of patches to apply to the base manifests according to the strategic merge strategy
+patchesStrategicMerge:
+  # The patch for customizing the environment variables passed to the Catalog Service container
+  - patch-env.yml
