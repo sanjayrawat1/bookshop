@@ -457,8 +457,8 @@ Keycloak server:
 $ ./create-secrets.sh http://<external-ip>/realms/Bookshop
 ```
 
-#### Running Polar UI
-Polar UI is a single-page application built with Angular and served by NGINX.
+#### Running Bookshop UI
+Bookshop UI is a single-page application built with Angular and served by NGINX.
 
 Navigate to the kubernetes/platform/production/bookshop-ui folder, and run the following command to deploy bookshop-ui to production Kubernetes cluster:
 
@@ -491,3 +491,73 @@ $ doctl databases delete <redis-id>
 Finally, open a browser window, navigate to the DigitalOcean web interface (https://cloud.digitalocean.com), and go through the different categories of cloud
 resources in your account to verify that there’s no outstanding services. If there are, delete them. There could be load balancers or persistent volumes created
 as a side effect of creating a cluster or a database, and that may not have been deleted by the previous commands.
+
+#### Configuring CPU and memory for Spring Boot containers
+When dealing with containerized applications, it's best to assign resource limits explicitly. Containers are isolated contexts leveraging Linux features, like
+namespaces and cgroups, to partition and limit resources among processes. However, suppose you don't specify any resource limits. In that case, each container
+will have access to the whole CPU set and memory available on the host machine, with the risk of some of them taking up more resources than they should and
+causing other containers to crash due to a lack of resources.
+
+For JVM-based applications like Spring Boot, defining CPU and memory limits is even more critical because they will be used to properly size items like JVM
+thread pools, heap memory, and non-heap memory. Configuring those values has always been a challenge for Java developers, and it's critical since they directly
+affect application performance. Fortunately, if you use the Paketo implementation of Cloud Native Buildpacks included in Spring Boot, you don't need to worry
+about that. When you packaged the Catalog Service application with Paketo, a Java Memory Calculator component was included automatically. When you run the
+containerized application, that component will configure the JVM memory based on the resource limits assigned to the container. If you don't specify any limits,
+the results will be unpredictable.
+
+There's also an economic aspect to consider. If you run your applications in a public cloud, you're usually charged based on how many resources you consume.
+Consequently, you'll probably want to be in control of how much CPU and memory each container can use to avoid nasty surprises when the bill arrives.
+
+When it comes to orchestrators like Kubernetes, there's another critical issue related to resources that you should consider. Kubernetes schedules Pods to be
+deployed in any of the cluster nodes. But what if a Pod is assigned to a node that has insufficient resources to run the container correctly? The solution is to
+declare the minimum CPU and memory a container needs to operate (resource requests). Kubernetes will use that information to deploy a Pod to a specific node
+only if it can guarantee the container will get at least the requested resources.
+
+Resource requests and limits are defined per container. You can specify both requests and limits in a Deployment manifest.
+
+Even though we're considering a production scenario, we'll use low values to optimize the resource usage in your cluster and avoid incurring additional costs.
+In a real-world scenario, you might want to analyze more carefully which requests and limits would be appropriate for your use case.
+
+##### OPTIMIZING CPU AND MEMORY FOR SPRING BOOT APPLICATIONS
+The memory request and limit are the same, but that's not true for the CPU.
+The amount of CPU available to a container directly affects the startup time of a JVM-based application like Spring Boot. In fact, the JVM leverages as much
+CPU as available to run the initialization tasks concurrently and reduce the startup time. After the startup phase, the application will use much lower CPU
+resources.
+
+A common strategy is to define the CPU request (resources.requests.cpu) with the amount the application will use under normal conditions, so that it's always
+guaranteed to have the resources required to operate correctly. Then, depending on the system, you may decide to specify a higher CPU limit or omit it entirely
+(resources.limits.cpu) to optimize performance at startup so that the application can use as much CPU as available on the node at that moment.
+
+CPU is a compressible resource, meaning that a container can consume as much of it as is available. When it hits the limit (either because of
+resources.limits.cpu or because there's no more CPU available on the node), the operating system starts throttling the container process, which keeps running
+but with possibly lower performance. Since it's compressible, not specifying a CPU limit can be a valid option sometimes to gain a performance boost. Still,
+you'll probably want to consider the specific scenario and evaluate the consequences of such a decision.
+
+Unlike CPU, memory is a non-compressible resource. If a container hits the limit (either because of resources.limits.memory or because there's no more memory
+available on the node), a JVM-based application will throw the dreadful OutOfMemoryError, and the operating system will terminate the container process with an
+OOMKilled (OutOfMemory killed) status. There is no throttling. Setting the correct memory value is, therefore, particularly important. There is no shortcut to
+inferring the proper configuration; you must monitor the application running under normal conditions. That's true for both CPU and memory.
+
+Growing and shrinking the container memory dynamically will affect the application’s performance, since the heap memory is dynamically allocated based on the
+memory available to the container. Using the same value for the request and the limit ensures that a fixed amount of memory is always guaranteed, resulting in
+better JVM performance. Furthermore, it allows the Java Memory Calculator provided by the Paketo Buildpacks to configure the JVM memory in the most efficient way.
+
+##### CONFIGURING RESOURCES FOR THE JVM
+The Paketo Buildpacks used by the Spring Boot plugin for Gradle/Maven provide a Java Memory Calculator component when building container images for Java
+applications.
+
+In a production scenario, the default configuration is a good starting point for most applications. However, it can be too resource-demanding for local
+development or demos. One way to make the JVM consume fewer resources is to lower the default 250 JVM thread count for imperative applications. Reactive
+applications are already configured with fewer threads, since they are much more resource-efficient than their imperative counterparts.
+
+The Paketo team is working on extending the Java Memory Calculator to provide a low-profile mode, which will be helpful when working locally or on low-volume
+applications. In the future, it will be possible to control the memory configuration mode via a flag rather than having to tweak the individual parameters. You
+can find more information about this feature on the GitHub project for Paketo Buildpacks (http://mng.bz/5Q87).
+
+The JVM has two main memory areas: heap and non-heap. The Calculator focuses on computing values for the different non-heap memory parts according to a specific
+formula. The remaining memory resources are assigned to the heap.
+
+If the default configuration is not good enough, you can customize it as you prefer. If your application required more direct memory than was configured by
+default. In that case, you can use the standard -XX:MaxDirectMemorySize=50M JVM setting via the JAVA_TOOL_OPTIONS environment variable and increase the maximum
+size for the direct memory from 10 MB to 50 MB. If you customize the size of a specific memory region, the Calculator will adjust the allocation of the
+remaining areas accordingly.

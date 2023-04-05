@@ -8,5 +8,8 @@ spec:
       containers:
         - name: catalog-service
           env:
+            # The number of threads considered in the memory calculation
+            - name: BPL_JVM_THREAD_COUNT
+              value: "100"
             - name: SPRING_PROFILES_ACTIVE
               value: prod

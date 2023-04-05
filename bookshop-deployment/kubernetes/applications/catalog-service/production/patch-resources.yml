@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalog-service
+spec:
+  template:
+    spec:
+      containers:
+        - name: catalog-service
+          resources:
+            # Minimum amount of resources required by the container to operate.
+            requests:
+              # The container is guaranteed 756 MiB.
+              memory: 756Mi
+              # The container is guaranteed CPU cycles equivalent to 0.1 CPU.
+              cpu: 0.1
+            # Maximum amount of resources the container is allowed to consume.
+            limits:
+              # The container can consume 756 MiB at most.
+              memory: 756Mi
+              # The container can consume CPU cycles equivalent to 2 CPUs at most.
+              cpu: 2
