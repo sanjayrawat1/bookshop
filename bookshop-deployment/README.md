@@ -457,3 +457,12 @@ Keycloak server:
 $ ./create-secrets.sh http://<external-ip>/realms/Bookshop
 ```
 
+#### Running Polar UI
+Polar UI is a single-page application built with Angular and served by NGINX.
+
+Navigate to the kubernetes/platform/production/bookshop-ui folder, and run the following command to deploy bookshop-ui to production Kubernetes cluster:
+
+```shell
+$ ./deploy.sh
+```
+
