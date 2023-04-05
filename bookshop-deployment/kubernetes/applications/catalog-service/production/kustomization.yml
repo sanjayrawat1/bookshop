@@ -11,3 +11,12 @@ patchesStrategicMerge:
   # The patch for customizing the environment variables passed to the Catalog Service container
   - patch-env.yml
   - patch-volumes.yml
+
+configMapGenerator:
+  # The same ConfigMap name used in the base Kustomization
+  - name: catalog-config
+    # Merges this ConfigMap with the one defined in the base Kustomization
+    behavior: merge
+    files:
+      # The additional property file added to the ConfigMap
+      - application-prod.yml
