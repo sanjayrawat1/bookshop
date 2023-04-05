@@ -561,3 +561,44 @@ If the default configuration is not good enough, you can customize it as you pre
 default. In that case, you can use the standard -XX:MaxDirectMemorySize=50M JVM setting via the JAVA_TOOL_OPTIONS environment variable and increase the maximum
 size for the direct memory from 10 MB to 50 MB. If you customize the size of a specific memory region, the Calculator will adjust the allocation of the
 remaining areas accordingly.
+
+#### Deploying Spring Boot in production
+Our end goal is to automate the full process from code commit to production. Before looking into the production stage of the deployment pipeline, let's verify
+that the customizations we've defined so far are correct by deploying Catalog Service in production manually.
+
+Navigate to the production overlay folder for Catalog Service (kubernetes/applications/catalog-service/production), and run the following command to deploy the
+application via Kustomize:
+
+```shell
+$ kubectl apply -k .
+```
+
+You can follow their progress and see when the two application instances are ready to accept requests and verify the application is running correctly and
+returning the value specified in the ConfigMap for the prod spring profile instead of default one by running this commands:
+
+```shell
+$ kubectl get pods -l app=catalog-service --watch
+$ kubectl logs deployment/catalog-service
+$ kubectl port-forward service/catalog-service 9001:80
+$ http :9001/
+```
+
+When you're done verifying, delete the deployment by running the following command from the production overlay folder for Catalog Service:
+
+```shell
+$ kubectl delete -k .
+```
+
+Kubernetes provides the infrastructure for implementing different types of deployment strategies. When we update our application manifests with a new release
+version and apply them to the cluster, Kubernetes performs a **rolling update**. This strategy consists in incrementally updating Pod instances with new ones
+and guarantees zero downtime for the user.
+
+By default, Kubernetes adopts the rolling update strategy, but there are other techniques that you can employ based on the standard Kubernetes resources, or
+you can rely on a tool like Knative. For example, you might want to use **blue/green deployments**, consisting of deploying the new version of the software in
+a second production environment. By doing that, you can test one last time that everything runs correctly. When the environment is ready, you move the traffic
+from the first (**blue**) to the second (**green**) production environment (http://mng.bz/WxOl).
+
+Another deployment technique is the **canary release**. It's similar to the blue/green deployment, but the traffic from the blue to the green environment is
+moved gradually over time. The goal is to roll out the change to a small subset of users first, perform some verifications, and then do the same for more and
+more users until everyone is using the new version (http://mng.bz/8Mz5). Both blue/green deployments and canary releases provide a straightforward way to roll
+back changes.
