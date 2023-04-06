@@ -602,3 +602,59 @@ Another deployment technique is the **canary release**. It's similar to the blue
 moved gradually over time. The goal is to roll out the change to a small subset of users first, perform some verifications, and then do the same for more and
 more users until everyone is using the new version (http://mng.bz/8Mz5). Both blue/green deployments and canary releases provide a straightforward way to roll
 back changes.
+
+### Deployment pipeline: Production stage
+After a release candidate has gone through the commit and acceptance stages, we are confident enough to deploy it to production. The production stage can be
+triggered manually or automatically, depending on whether you'd like to achieve continuous deployment.
+
+**Continuous delivery** is a software development discipline where you build software in such a way that the software can be released to production at any time
+(http://mng.bz/7yXV). The key part is understanding that the software can be released to production, but it doesn't have to. That's a common source of confusion
+between continuous delivery and continuous deployment. If you also want to take the newest release candidate and deploy it to production automatically, then you
+would have continuous deployment.
+
+The production stage consists of two main steps:
+1. Update the deployment scripts (in our case, the Kubernetes manifests) with the new release version.
+2. Deploy the application to the production environment.
+
+At the end of the acceptance stage, we have a release candidate that's proven to be ready for production. After that, we need to update the Kubernetes manifests
+in our production overlay with the new release version. When we're keeping both the application source code and deployment scripts in the same repository, the
+production stage could be listening to a specific event published by GitHub whenever the acceptance stage completes successfully, much like how we configured
+the flow between the commit and acceptance stages.
+
+In our case, we are keeping the deployment scripts in a separate repository, which means that whenever the acceptance stage workflow completes its execution in
+the application repository, we need to notify the production stage workflow in the deployment repository. GitHub Actions provides the option of implementing
+this notification process via a custom event. Let's see how it works.
+
+Open your Catalog Service project (catalog-service), and go to the acceptance-stage.yml file within the .github/workflows folder. After all the acceptance tests
+have run successfully, we have to define a final step that will send a notification to the bookshop-deployment repository and ask it to update the Catalog
+Service production manifests with the new release version. That will be the trigger for the production stage.
+
+By default, GitHub Actions doesn't allow you to trigger workflows located in other repositories, even if they both belong to you or your organization.
+Therefore, we need to provide the **repository-dispatch** action with an access token that grants it such permissions. The token can be a personal access token
+(PAT).
+
+Go to your GitHub account, navigate to Settings > Developer Settings > Personal Access Token, and choose Generate New Token. Input a meaningful name, and
+assign it the **workflow** scope to give the token permissions to trigger workflows in other repositories. Finally, generate the token and copy its value.
+GitHub will show you the token value only once.
+
+Next, go to your Catalog Service repository on GitHub, navigate to the Settings tab, and then select Secrets > Actions. On that page, choose New Repository
+Secret, name it DISPATCH_TOKEN (the same name we used in acceptance-stage.yml), and input the value of the PAT you generated earlier. Using the Secrets feature
+provided by GitHub, we can provide the PAT securely to the acceptance stage workflow.
+
+**WARNING** - When using actions from the GitHub marketplace, you should handle them like any other third-party application and manage the security risks
+accordingly. In the acceptance stage, we provide an access token to a third party action with permissions to manipulate repositories and workflows. You
+shouldn't do that light-heartedly. In this case, I trusted the author of the action and decided to trust the action with the token.
+
+The production stage is triggered whenever the acceptance stage from an application repository dispatches an **app_delivery** event. The event itself contains
+contextual information about the application name, image, and version for the newest release candidate. Since the application-specific information is
+parameterized, we can use this workflow for all the applications of the Bookshop system, not only Catalog Service.
+
+The first job of the production stage is updating the production Kubernetes manifests with the new release version. This job will consist of three steps:
+1. Check out the bookshop-deployment source code.
+2. Update the production Kustomization with the new version for the given application.
+3. Commit the changes to the bookshop-deployment repository.
+
+**The commit stage goes from code commit to a release candidate, which goes through the acceptance stage. If it passes all the tests, the production stage updates
+the deployment manifests.**
+
+![](https://github.com/sanjayrawat1/bookshop/blob/main/bookshop-deployment/diagrams/deployment-pipeline-code-commit-to-production-deployment.drawio.svg)
