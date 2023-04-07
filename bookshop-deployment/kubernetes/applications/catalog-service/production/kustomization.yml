@@ -27,7 +27,7 @@ configMapGenerator:
 images:
 - name: catalog-service
   newName: ghcr.io/sanjayrawat1/catalog-service
-  newTag: ec29f372b55a9b0cfd904cba0372ddfc60b195a5
+  newTag: a9a81bc5cb38c990840ee1b4e3504b52eab99709
 
 replicas:
 - count: 2
