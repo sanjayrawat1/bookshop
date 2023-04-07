@@ -1,0 +1,11 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: bookshop-ingress
+  annotations:
+    # Block requests to the Actuator endpoints from outside the cluster.
+    nginx.ingress.kubernetes.io/server-snippet: |
+      location ~* "^/management" {
+        deny all;
+        return 403;
+      }
