@@ -1,0 +1,31 @@
+name: Production Stage - edge-service
+on:
+  repository_dispatch:
+    # Executes the workflow only when a new app_delivery event is received, dispatched from another repository
+    types: [edge_service_app_delivery]
+jobs:
+  update:
+    name: Update application version
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    env:
+      APP_IMAGE: ${{ github.event.client_payload.app_image }}
+      APP_NAME: ${{ github.event.client_payload.app_name }}
+      APP_VERSION: ${{ github.event.client_payload.app_version }}
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+      - name: Update image version
+        # 1. Navigates to the production overlay for the given application
+        # 2. Updates the image name and version via Kustomize for the given application
+        # 3. Updates the tag used by Kustomize to access the correct base manifests stored in the application repository
+        run: |
+          cd bookshop-deployment/kubernetes/applications/${{ env.APP_NAME }}/production
+          kustomize edit set image ${{ env.APP_NAME }}=${{ env.APP_IMAGE }}:${{ env.APP_VERSION }}
+          sed -i 's/ref=[\w+]/${{ env.APP_VERSION }}/' kustomization.yml
+      - name: Commit updated manifests
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "bookshop-deployment: update ${{ env.APP_NAME }} to version ${{ env.APP_VERSION }}"
+          branch: main

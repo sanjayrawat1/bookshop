@@ -1,0 +1,67 @@
+name: Acceptance Stage - order-service
+on:
+  # This workflow is triggered when the Commit Stage workflow completes a run.
+  workflow_run:
+    workflows: ['Commit Stage - order-service']
+    types: [completed]
+    branches: main
+# Ensures that only one workflow runs at a time.
+concurrency: acceptance
+
+# Defines relevant data as environment variables.
+env:
+  OWNER: sanjayrawat1
+  REGISTRY: ghcr.io
+  APP_REPO: bookshop
+  DEPLOY_REPO: bookshop-deployment
+  VERSION: ${{ github.sha }}
+
+jobs:
+  functional:
+    name: Functional Acceptance Tests
+    # The job runs only if the commit stage completed successfully.
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-22.04
+    steps:
+      - run: echo "Running functional acceptance tests"
+  performance:
+    name: Performance Tests
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-22.04
+    steps:
+      - run: echo "Running performance tests"
+  security:
+    name: Security Tests
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-22.04
+    steps:
+      - run: echo "Running security tests"
+  deliver:
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [
+          order-service,
+        ]
+    name: Deliver release candidate to production
+    # Runs only when all functional and non-functional acceptance tests are completed successfully.
+    needs: [ functional, performance, security ]
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Deliver application to production
+        # An action to send an event to another repository and trigger a workflow.
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          # A token to grant the action permission to send events to another repository.
+          token: ${{ secrets.DISPATCH_TOKEN }}
+          # The repository to notify
+          repository: ${{ env.OWNER }}/${{ env.APP_REPO }}/${{ env.DEPLOY_REPO}}
+          # A name to identify the event (this is up to you).
+          event-type: order_service_app_delivery
+          # The payload of the message sent to the other repository.
+          # Add any information that the other repository might need to perform its operations.
+          client-payload: '{
+            "app_image": "${{ env.REGISTRY }}/${{ env.OWNER }}/${{ matrix.project }}",
+            "app_name": "${{ matrix.project }}",
+            "app_version": "${{ env.VERSION }}"
+          }'
