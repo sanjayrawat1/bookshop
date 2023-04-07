@@ -1,29 +1,29 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-  # Uses the manifests in your Catalog Service repo on GitHub as the base for further customizations
-  # The git commit hash (sha) identifying your latest release candidate
+# Uses the manifests in your Catalog Service repo on GitHub as the base for further customizations
+# The git commit hash (sha) identifying your latest release candidate
 resources:
 - github.com/sanjayrawat1/bookshop/catalog-service/k8s?ref=278ea44c59f9b1b6732991b1612624b40dca9547
 
 # Section containing the list of patches to apply to the base manifests according to the strategic merge strategy
-  # The patch for customizing the environment variables passed to the Catalog Service container
+# The patch for customizing the environment variables passed to the Catalog Service container
 patchesStrategicMerge:
 - patch-env.yml
 - patch-resources.yml
 - patch-volumes.yml
 
-  # The same ConfigMap name used in the base Kustomization
-    # Merges this ConfigMap with the one defined in the base Kustomization
-      # The additional property file added to the ConfigMap
+# The same ConfigMap name used in the base Kustomization
+# Merges this ConfigMap with the one defined in the base Kustomization
+# The additional property file added to the ConfigMap
 configMapGenerator:
 - behavior: merge
   files:
   - application-prod.yml
   name: catalog-config
 
-    # The new image name for the container (with your GitHub username in lowercase)
-    # The new tag for the container (with your release candidate's unique identifier)
+# The new image name for the container (with your GitHub username in lowercase)
+# The new tag for the container (with your release candidate's unique identifier)
 images:
 - name: catalog-service
   newName: ghcr.io/sanjayrawat1/catalog-service
