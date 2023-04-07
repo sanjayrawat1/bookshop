@@ -9,8 +9,8 @@ in the file join it. That means they can interact with each other through their 
 `$ docker network rm catalog-network`
 
 ### Debugging Spring Boot Containers
-First you need to instruct the JVM inside the container to listen for debug connections on a specific port. The container image produced by Paketo Buildpacks 
-supports dedicated environment variables for running the application in debug mode (BPL_DEBUG_ENABLED and BPL_DEBUG_PORT). Then you need to expose the 
+First you need to instruct the JVM inside the container to listen for debug connections on a specific port. The container image produced by Paketo Buildpacks
+supports dedicated environment variables for running the application in debug mode (BPL_DEBUG_ENABLED and BPL_DEBUG_PORT). Then you need to expose the
 debug port outside the container so that your IDE can reach it.
 
 **From a container, you can expose as many ports as you want. For Catalog Service, expose both the server port and the debug port.**
@@ -22,7 +22,7 @@ After adding remote config in docker-compose file go to the location of docker-c
 `$ docker-compose up -d`
 
 ### Managing data services in a local cluster
-Data services are the stateful components of a system and require special care in a cloud environment due to the challenges of handling their storage. 
+Data services are the stateful components of a system and require special care in a cloud environment due to the challenges of handling their storage.
 Managing persistence and storage in Kubernetes is a complex topic, and it’s not usually the responsibility of developers.
 When you deploy the Bookshop system in production, you’ll rely on the managed data services offered by the cloud provider.
 For local k8s cluster, I have prepared the configuration for deploying PostgreSQL, under [services](kubernetes%2Fplatform%2Fdevelopment%2Fservices) folder.
@@ -45,9 +45,9 @@ To undeploy the database, you can run the below command from the same folder:
 `$ kubectl delete -f services`
 
 ##### Deployment Scripts
-Scripts that performs all the previous operations with a single command. You can run it to create a local Kubernetes cluster with minikube, enable the Ingress 
+Scripts that performs all the previous operations with a single command. You can run it to create a local Kubernetes cluster with minikube, enable the Ingress
 NGINX add-on, and deploy the backing services used by Bookshop. You’ll find the create-cluster.sh and destroy-cluster.sh files in the
-kubernetes/platform/development folder. 
+kubernetes/platform/development folder.
 On macOS and Linux, you might need to make the scripts executable via the **chmod +x create-cluster.sh** command.
 
 Until now, the only application supposed to be accessed by users directly was Edge Service. All the other Spring Boot applications interact with each other from
@@ -187,7 +187,7 @@ You can check which node each Pod has been allocated on with:
 
 You can also try to update the application-staging.yml file, apply the Kustomization to the cluster again (kubectl apply -k .), and see how the Catalog Service
 Pods are restarted one after the other (rolling restarts) to load the new ConfigMap with zero downtime. To visualize the sequence of events, you can either use
-Octant or launch this command on a separate Terminal window before applying the Kustomization: 
+Octant or launch this command on a separate Terminal window before applying the Kustomization:
 
 `$ kubectl get pods -l app=catalog-service --watch`
 
@@ -329,19 +329,20 @@ dedicated users for the two applications and grant limited privileges. For simpl
 First, create a Secret for Catalog Service using the information returned by the previous doctl command:
 
 ```shell
-$ kubectl create secret generic bookshop-postgres-catalog-credentials
- --from-literal=spring.datasource.url=jdbc:postgresql://<postgres_host>:<postgres_port>/bookshop_catalog
-  --from-literal=spring.datasource.username=<postgres_username>
-   --from-literal=spring.datasource.password=<postgres_password>
+$ kubectl create secret generic bookshop-postgres-catalog-credentials \
+  --from-literal=spring.datasource.url=jdbc:postgresql://<postgres_host>:<postgres_port>/bookshop_catalog \
+  --from-literal=spring.datasource.username=<postgres_username> \
+  --from-literal=spring.datasource.password=<postgres_password>
 ```
 
 Similarly, create a Secret for Order Service. Pay attention to the slightly different syntax required by Spring Data R2DBC for the URL:
 
 ```shell
-$ kubectl create secret generic bookshop-postgres-order-credentials
- --from-literal="spring.flyway.url=jdbc:postgresql://<postgres_host>:<postgres_port>/bookshop_order"
-  --from-literal="spring.r2dbc.url=r2dbc:postgresql://<postgres_host>:<postgres_port>/bookshop_order?ssl=true&sslMode=require"
-   --from-literal=spring.r2dbc.username=<postgres_username> --from-literal=spring.r2dbc.password=<postgres_password>
+$ kubectl create secret generic bookshop-postgres-order-credentials \
+  --from-literal="spring.flyway.url=jdbc:postgresql://<postgres_host>:<postgres_port>/bookshop_order" \
+  --from-literal="spring.r2dbc.url=r2dbc:postgresql://<postgres_host>:<postgres_port>/bookshop_order?ssl=true&sslMode=require" \
+  --from-literal=spring.r2dbc.username=<postgres_username> \
+  --from-literal=spring.r2dbc.password=<postgres_password>
 ```
 
 #### Running Redis on DigitalOcean
@@ -366,12 +367,12 @@ $ doctl databases connection <redis_id> --format Host,Port,User,Password
 ```
 
 ```shell
-$ kubectl create secret generic bookshop-redis-credentials
- --from-literal=spring.redis.host=<redis_host>
-  --from-literal=spring.redis.port=<redis_port>
-   --from-literal=spring.redis.username=<redis_username>
-    --from-literal=spring.redis.password=<redis_password>
-     --from-literal=spring.redis.ssl=true
+$ kubectl create secret generic bookshop-redis-credentials \
+  --from-literal=spring.redis.host=<redis_host> \
+  --from-literal=spring.redis.port=<redis_port> \
+  --from-literal=spring.redis.username=<redis_username> \
+  --from-literal=spring.redis.password=<redis_password> \
+  --from-literal=spring.redis.ssl=true
 ```
 
 #### Running RabbitMQ using a Kubernetes Operator
@@ -446,7 +447,7 @@ The platform might take a few minutes to provision a load balancer. During the p
 again until an IP address is shown. Note it down, since we're going to use it in multiple scenarios.
 
 Since Keycloak is exposed via a public load balancer, you can use the external IP address to access the Admin Console. Open a browser window, navigate to
-**http://<external-ip>/admin**, and log in with the credentials returned by the deployment script.
+`http://<external-ip>/admin`, and log in with the credentials returned by the deployment script.
 
 Now that you have a public DNS name for Keycloak, you can define a couple of Secrets to configure the Keycloak integration in Edge Service (OAuth2 Client),
 Catalog Service, and Order Service (OAuth2 Resource Servers). Navigate to the kubernetes/platform/production/keycloak folder, and run the following command to
@@ -658,3 +659,166 @@ The first job of the production stage is updating the production Kubernetes mani
 the deployment manifests.**
 
 ![](https://github.com/sanjayrawat1/bookshop/blob/main/bookshop-deployment/diagrams/deployment-pipeline-code-commit-to-production-deployment.drawio.svg)
+
+### Continuous deployment with GitOps
+Traditionally, continuous deployment is implemented by adding a further step to the production stage of the deployment pipeline. This additional step would
+authenticate with the target platform (such as a virtual machine or a Kubernetes cluster) and deploy the new version of the application. In recent years, a
+different approach has become more and more popular: GitOps.
+
+GitOps is a set of practices for operating and managing software systems, enabling continuous delivery and deployment while ensuring agility and reliability.
+Compared to the traditional approach, GitOps favors decoupling between delivery and deployment. Instead of having the pipeline pushing deployments to the
+platform, it's the platform itself pulling the desired state from a source repository and performing deployments. In the first case, the deployment step is
+implemented within the production stage workflow. In the second case, the deployment is still theoretically considered part of the production stage, but the
+implementation differs.
+
+GitOps doesn't enforce specific technologies, but it's best implemented with Git and Kubernetes. The GitOps Working Group, part of the CNCF, defines GitOps in
+terms of four principles (https://opengitops.dev):
+
+1. **Declarative** — A system managed by GitOps must have its desired state expressed declaratively.
+    * Working with Kubernetes, we can express the desired state via YAML files (manifests).
+    * Kubernetes manifests declare what we want to achieve, not how. The platform is responsible for finding a way to achieve the desired state.
+2. **Versioned and immutable** — Desired state is stored in a way that enforces immutability, versioning and retains a complete version history.
+    * Git is the preferred choice for ensuring the desired state is versioned and the whole history retained. That makes it possible, among other things, to
+      roll back to a previous state with ease.
+    * The desired state stored in Git is immutable and represents the single source of truth.
+3. **Pulled automatically** — Software agents automatically pull the desired state declarations from the source.
+    * Examples of software agents (GitOps agents) are Flux (https://fluxcd.io), Argo CD (https://argoproj.github.io/cd), and kapp-controller (https://carvel.dev/kapp-controller).
+    * Rather than granting CI/CD tools like GitHub Actions full access to the cluster or running commands manually, we grant the GitOps agent access to a source
+      like Git so that it pulls changes automatically.
+4. **Continuously reconciled** — Software agents continuously observe actual system state and attempt to apply the desired state.
+    * Kubernetes is composed of controllers that keep observing the system and ensuring the actual state of the cluster matches the desired state.
+    * On top of that, GitOps ensures that it’s the right desired state to be considered in the cluster. Whenever a change is detected in the Git source, the
+      agent steps up and reconciles the desired state with the cluster.
+
+![](https://github.com/sanjayrawat1/bookshop/blob/main/bookshop-deployment/diagrams/deployment-pipeline-with-gitops-principles.drawio.svg)
+
+We've applied the first two already. We expressed the desired state for our applications declaratively using Kubernetes manifests and Kustomize. And we stored
+the desired state in a Git repository (bookshop-deployment), making it versioned and immutable. We are still missing a software agent that automatically pulls
+the desired state declarations from the Git source and continuously reconciles them inside the Kubernetes cluster, therefore achieving continuous deployment.
+
+We'll start by installing Argo CD (https://argo-cd.readthedocs.io), a GitOps software agent. Then we'll configure it to complete the final step of the
+deployment pipeline and let it monitor our bookshop-deployment repository. Whenever there's a change in the application manifests, Argo CD will apply the
+changes to our production Kubernetes cluster.
+
+Let's start by installing the Argo CD CLI. Refer to the project website for installation instructions (https://argo-cd.readthedocs.io). If you are on macOS or
+Linux, you can use Homebrew as follows:
+
+```shell
+$ brew install argocd
+```
+
+Verify Kubernetes CLI is still configured to access the production cluster on DigitalOcean. You can check that with **kubectl config current-context**. If you
+need to change the context, you can run **kubectl config use-context <context-name>**. A list of all the contexts available can be retrieved from **kubectl
+config get-contexts**.
+
+Navigate to the kubernetes/platform/production/argocd folder, and run the following command to deploy Argo CD to production Kubernetes cluster:
+
+```shell
+$ ./deploy.sh
+```
+
+During the installation, Argo CD will have autogenerated a password for the admin account (the username is admin). Run the following command to fetch the
+password value (it will take a few seconds before the value is available):
+
+```shell
+$ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d; echo
+```
+
+To identify the external IP address assigned to Argo CD server, run following command:
+
+```shell
+$ kubectl -n argocd get service argocd-server
+```
+
+The platform might take a few minutes to provision a load balancer for Argo CD. During the provisioning, the EXTERNAL-IP column will show a <pending> status.
+Wait and try again until an IP address is shown.
+
+Since the Argo CD server is now exposed via a public load balancer, we can use the external IP address to access its services, we'll use CLI, but you can
+achieve the same results by opening <argocd-external-ip> (the IP address assigned to your Argo CD server) in a browser window. The username is **admin**, and
+the password is the one you fetched earlier.
+
+```shell
+$ argocd login <argocd-external-ip>
+```
+
+Now we'll configure Argo CD to monitor the production overlay for Catalog Service and synchronize it with the production cluster whenever it detects a change
+in the repository. In other words, Argo CD will continuously deploy new versions of Catalog Service as made available by the deployment pipeline.
+
+```shell
+argocd app create catalog-service --repo https://github.com/sanjayrawat1/bookshop.git \
+  --path bookshop-deployment/kubernetes/applications/catalog-service/production \
+  --dest-server https://kubernetes.default.svc \
+  --dest-namespace default \
+  --sync-policy auto \
+  --auto-prune
+```
+
+##### Explanation of above command
+| command breakdown                                                             | description                                                                                                                          |
+|-------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|
+| argocd app create catalog-service                                             | Create a catalog-service application in Argo CD.                                                                                     |
+| --repo https://github.com/sanjayrawat1/bookshop.git                           | The GIT repository to monitor for changes.                                                                                           |
+| --path bookshop-deployment/kubernetes/applications/catalog-service/production | The folder to monitor for changes within the configured repository.                                                                  |
+| --dest-server https://kubernetes.default.svc                                  | The kubernetes cluster where the application should be deployed. We are using the default cluster configured in the kubectl context. |
+| --dest-namespace default                                                      | The namespace where the application should be deployed. We are using the "default" namespace.                                        |
+| --sync-policy auto                                                            | Configures Argo CD to automatically reconcile the desired state in the Git repo with the actual state in the cluster.                |
+| --auto-prune                                                                  | Configures Argo CD to delete old resources after a synchronization automatically.                                                    |
+
+You can verify the status of the continuous deployment of Catalog Service with the following command:
+
+```shell
+argocd app get catalog-service
+```
+
+Argo CD has automatically applied the production overlay for Catalog Service (kubernetes/applications/catalog-service/production) to the cluster.
+
+Once all the resources listed by the previous command have the Synced status, we can verify that the application is running correctly. The application is not
+exposed outside the cluster yet, but you can use the port-forwarding functionality to forward traffic from your local environment on port 9001 to the Service
+running in the cluster on port 80:
+
+```shell
+$ kubectl port-forward service/catalog-service 9001:80
+```
+
+Next, call the root point exposed by the application. We expect to get the value we configured for the bookshop.greeting property in the Catalog Service
+production overlay.
+
+```shell
+$ http :9001/
+```
+
+Update the value of bookshop.greeting property in application-prod.yml file. Then commit and push the changes. By default, Argo CD checks the Git repository for
+changes every three minutes. It will notice the change and apply the Kustomization again, resulting in a new ConfigMap being generated by Kustomize and a
+rolling restart of the Pods to refresh the configuration.
+
+Using Argo CD CLI, register each application as we did for catalog-service. Once the whole system is deployed, we can access the applications as intended: via
+the Edge Service. The platform automatically configures a load balancer with an external IP address whenever we deploy an Ingress resource. Let's discover the
+external IP address for the Ingress sitting in front of edge-service by following command:
+
+```shell
+$ kubectl get ingress
+```
+
+Using the Ingress external IP address, you can access the Bookshop from the public internet.
+Ensure that you can't access the Actuator endpoints by visiting <ip-address>/management/health, for example. NGINX, the technology that powers the Ingress
+Controller, will reply with a 403 response.
+
+#### Summary
+* The idea behind continuous delivery is that an application is always in releasable state.
+* When the delivery pipeline completes its execution, you'll obtain an artifact (the container image) you can use to deploy the application in production.
+* When it comes to continuous delivery, each release candidate should be uniquely identifiable.
+* Using the Git commit hash, you can ensure uniqueness, traceability, and automation. Semantic versioning can be used as the display name communicated to users
+  and customers.
+* At the end of the commit stage, a release candidate is delivered to the artifact repository. Next, the acceptance stage deploys the application in a
+  production-like environment and runs functional and non-functional tests. If they all succeed, the release candidate is ready for production.
+* The Kustomize approach to configuration customization is based on the concepts of bases and overlays. Overlays are built on top of base manifests and
+  customized via patches.
+* You saw how to define patches for customizing environment variables, Secrets mounted as volumes, CPU and memory resources, ConfigMaps, and Ingress.
+* The final part of a deployment pipeline is the production stage, where the deployment manifests are updated with the newest release version and ultimately
+  deployed.
+* Deployment can be push-based or pull-based.
+* GitOps is a set of practices for operating and managing software systems.
+* GitOps is based on four principles according to which a system deployment should be declarative, versioned and immutable, pulled automatically, and
+  continuously reconciled.
+* Argo CD is a software agent running in a cluster that automatically pulls the desired state from a source repository and applies it to the cluster whenever
+  the two states diverge. That's how we implemented continuous deployment.
