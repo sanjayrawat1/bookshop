@@ -15,8 +15,8 @@ import org.springframework.stereotype.Component;
  * and relying on annotations such as @ConditionalOnProperty and @ConditionalOnCloudPlatform to control when certain beans should be loaded into
  * the Spring application context. That’s one of the foundations of Spring Boot auto-configuration.
  * <p>
- * For example, you could define a polar.testdata.enabled custom property and
- * use the @ConditionalOnProperty(name = "polar.testdata .enabled", havingValue = "true") annotation on the BookDataLoader class.
+ * For example, you could define a bookshop.testdata.enabled custom property and
+ * use the @ConditionalOnProperty(name = "bookshop.testdata .enabled", havingValue = "true") annotation on the BookDataLoader class.
  *
  * @author Sanjay Singh Rawat
  */
@@ -30,8 +30,8 @@ public class BookDataLoader {
     @EventListener(ApplicationReadyEvent.class)
     public void loadBookTestData() {
         bookRepository.deleteAll();
-        var book1 = Book.of("1234567891", "Northern Lights", "Lyra Silverstar", 9.90, "Publisher 1");
-        var book2 = Book.of("1234567892", "Polar Journey", "Iorek Polarson", 12.90, "Publisher 2");
+        var book1 = Book.of("1234567891", "Cloud Native Spring in Action", "Thomas Vitale", 9.90, "Manning");
+        var book2 = Book.of("1234567892", "High-Performance Java Persistence", "Vlad Mihalcea", 12.90, "Leanpub");
         bookRepository.saveAll(List.of(book1, book2));
     }
 }
