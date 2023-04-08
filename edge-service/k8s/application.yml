@@ -7,7 +7,7 @@ spring:
       client:
         provider:
           keycloak:
-            issuer-uri: http://bookshop-keycloak/realms/bookshop
+            issuer-uri: http://bookshop-keycloak/realms/Bookshop
 
 bookshop:
   greeting: Welcome to the book edge service from a development Kubernetes environment!
