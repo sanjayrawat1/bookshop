@@ -18,7 +18,7 @@ configMapGenerator:
 images:
 - name: order-service
   newName: ghcr.io/sanjayrawat1/order-service
-  newTag: latest
+  newTag: c431dedbb6abcbdbc7124b52328762afc1b1b29b
 
 replicas:
 - count: 2
