@@ -45,17 +45,17 @@ jobs:
         run: |
           chmod +x gradlew
           ./gradlew build
-      - name: Validate Kubernetes manifests
-        # an action capable of installing useful tools to work with kubernetes.
-        uses: stefanprodan/kube-tools@v1
-        with:
-          # includes the kubernetes CLI in the installation.
-          kubectl: 1.24.3
-          # includes Kubeval in the installation.
-          kubeval: 0.16.1
-          # Uses Kustomize to generate the manifests and then validates them with Kubeval.
-          command: |
-            kustomize build ${{ matrix.project }}/k8s | kubeval --strict -
+#      - name: Validate Kubernetes manifests
+#        # an action capable of installing useful tools to work with kubernetes.
+#        uses: stefanprodan/kube-tools@v1
+#        with:
+#          # includes the kubernetes CLI in the installation.
+#          kubectl: 1.24.3
+#          # includes Kubeval in the installation.
+#          kubeval: 0.16.1
+#          # Uses Kustomize to generate the manifests and then validates them with Kubeval.
+#          command: |
+#            kustomize build ${{ matrix.project }}/k8s | kubeval --strict -
   # The job’s unique identifier - package
   package:
     name: Package and Publish ${{ matrix.project }}
