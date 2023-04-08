@@ -368,11 +368,11 @@ $ doctl databases connection <redis_id> --format Host,Port,User,Password
 
 ```shell
 $ kubectl create secret generic bookshop-redis-credentials \
-  --from-literal=spring.redis.host=<redis_host> \
-  --from-literal=spring.redis.port=<redis_port> \
-  --from-literal=spring.redis.username=<redis_username> \
-  --from-literal=spring.redis.password=<redis_password> \
-  --from-literal=spring.redis.ssl=true
+  --from-literal=spring.data.redis.host=<redis_host> \
+  --from-literal=spring.data.redis.port=<redis_port> \
+  --from-literal=spring.data.redis.username=<redis_username> \
+  --from-literal=spring.data.redis.password=<redis_password> \
+  --from-literal=spring.data.redis.ssl=true
 ```
 
 #### Running RabbitMQ using a Kubernetes Operator
