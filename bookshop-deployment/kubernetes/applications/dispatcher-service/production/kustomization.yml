@@ -18,7 +18,7 @@ configMapGenerator:
 images:
 - name: dispatcher-service
   newName: ghcr.io/sanjayrawat1/dispatcher-service
-  newTag: latest
+  newTag: 4657cd925b4b1099967d7868f24872e3ddcedcbe
 
 replicas:
 - count: 2
