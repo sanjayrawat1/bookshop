@@ -2,9 +2,10 @@ package com.github.sanjayrawat1.bookshop.edgeservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.security.reactive.ReactiveUserDetailsServiceAutoConfiguration;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 
-@SpringBootApplication
+@SpringBootApplication(exclude = ReactiveUserDetailsServiceAutoConfiguration.class)
 @ConfigurationPropertiesScan
 public class EdgeServiceApplication {
 
