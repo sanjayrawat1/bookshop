@@ -5,4 +5,4 @@ spring:
     import: configtree:/workspace/secrets/*/
 
 bookshop:
-  greeting: Welcome to our book catalog from a production Kubernetes environment!
+  greeting: Welcome to our production book catalog synchronized with Argo CD!
