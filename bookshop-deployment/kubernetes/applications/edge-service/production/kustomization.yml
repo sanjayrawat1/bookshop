@@ -22,5 +22,5 @@ images:
   newTag: latest
 
 replicas:
-  - count: 2
-    name: edge-service
+- count: 2
+  name: edge-service
