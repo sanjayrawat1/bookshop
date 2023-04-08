@@ -19,7 +19,7 @@ configMapGenerator:
 images:
 - name: edge-service
   newName: ghcr.io/sanjayrawat1/edge-service
-  newTag: latest
+  newTag: 3cbffe345304c8aa005e66f6746e445c3de6e66d
 
 replicas:
 - count: 2
