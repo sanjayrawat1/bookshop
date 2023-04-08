@@ -1,6 +1,6 @@
 plugins {
     java
-    id("org.springframework.boot") version "3.0.4"
+    id("org.springframework.boot") version "3.0.5"
     id("io.spring.dependency-management") version "1.1.0"
     id("com.diffplug.spotless") version "6.16.0"
 }
@@ -21,7 +21,7 @@ repositories {
     mavenCentral()
 }
 
-extra["springCloudVersion"] = "2022.0.1"
+extra["springCloudVersion"] = "2022.0.2"
 extra["otelVersion"] = "1.24.0"
 
 dependencies {
@@ -33,11 +33,15 @@ dependencies {
     implementation("org.springframework.cloud:spring-cloud-starter-config")
     implementation("org.springframework.retry:spring-retry")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
+
     compileOnly("org.projectlombok:lombok")
+
     runtimeOnly("io.micrometer:micrometer-registry-prometheus")
     runtimeOnly("io.opentelemetry.javaagent:opentelemetry-javaagent:${property("otelVersion")}")
+
     annotationProcessor("org.projectlombok:lombok")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.projectreactor:reactor-test")
     testImplementation("org.springframework.cloud:spring-cloud-stream-test-binder")
