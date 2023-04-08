@@ -2,9 +2,8 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 # Uses the manifests in your Catalog Service repo on GitHub as the base for further customizations
-# The git commit hash (sha) identifying your latest release candidate
 resources:
-- github.com/sanjayrawat1/bookshop/catalog-service/k8s?ref=278ea44c59f9b1b6732991b1612624b40dca9547
+- github.com/sanjayrawat1/bookshop/catalog-service/k8s?ref=main
 
 # Section containing the list of patches to apply to the base manifests according to the strategic merge strategy
 # The patch for customizing the environment variables passed to the Catalog Service container
