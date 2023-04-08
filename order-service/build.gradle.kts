@@ -1,6 +1,6 @@
 plugins {
     java
-    id("org.springframework.boot") version "3.0.4"
+    id("org.springframework.boot") version "3.0.5"
     id("io.spring.dependency-management") version "1.1.0"
     id("com.diffplug.spotless") version "6.16.0"
 }
@@ -21,7 +21,7 @@ repositories {
     mavenCentral()
 }
 
-extra["springCloudVersion"] = "2022.0.1"
+extra["springCloudVersion"] = "2022.0.2"
 extra["testcontainersVersion"] = "1.17.6"
 extra["testKeycloakVersion"] = "2.5.0"
 extra["otelVersion"] = "1.24.0"
@@ -35,16 +35,19 @@ dependencies {
     implementation("org.springframework.retry:spring-retry")
     implementation("org.springframework.cloud:spring-cloud-stream-binder-rabbit")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
+
     compileOnly("org.projectlombok:lombok")
-    runtimeOnly("org.postgresql:postgresql")
+
     runtimeOnly("org.postgresql:r2dbc-postgresql")
     runtimeOnly("org.flywaydb:flyway-core")
     runtimeOnly("org.postgresql:postgresql")
     runtimeOnly("org.springframework:spring-jdbc")
     runtimeOnly("io.micrometer:micrometer-registry-prometheus")
     runtimeOnly("io.opentelemetry.javaagent:opentelemetry-javaagent:${property("otelVersion")}")
+
     annotationProcessor("org.projectlombok:lombok")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("io.projectreactor:reactor-test")
