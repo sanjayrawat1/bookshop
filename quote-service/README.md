@@ -117,3 +117,25 @@ Finally, you can run a Spring Boot application as a native image directly from G
 ```shell
 $ ./gradlew nativeRun
 ```
+
+##### CONTAINERIZING NATIVE IMAGES WITH BUILDPACKS
+The second option for compiling Spring Boot applications to native executables relies on Cloud Native Buildpacks. We can use Buildpacks to build a container
+image from the application native executable compiled by GraalVM. This approach benefits from not requiring GraalVM to be installed on your machine.
+
+The produce a containerized native image, run the following command:
+
+```shell
+$ ./gradlew bootBuildImage
+```
+
+When it's done, try running the resulting container image:
+
+```shell
+$ docker run --rm -p 9101:9101 quote-service
+```
+
+The startup time should again be less than 100 ms. Go ahead and send a few requests to test whether the application is working correctly:
+
+```shell
+$ http :9101/quotes/random
+```

@@ -42,6 +42,20 @@ tasks.build {
     dependsOn("spotlessApply")
 }
 
+tasks.bootBuildImage {
+    imageName.set(project.name)
+    environment.set(environment.get() + mapOf("BP_JVM_VERSION" to "19"))
+    buildpacks.set(listOf("gcr.io/paketo-buildpacks/graalvm", "gcr.io/paketo-buildpacks/java-native-image"))
+
+    docker {
+        publishRegistry {
+            url.set(project.findProperty("registryUrl").toString())
+            username.set(project.findProperty("registryUsername").toString())
+            password.set(project.findProperty("registryToken").toString())
+        }
+    }
+}
+
 spotless {
     java {
         toggleOffOn()
