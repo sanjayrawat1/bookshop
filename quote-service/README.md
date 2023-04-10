@@ -49,3 +49,71 @@ $ http :9101/quotes
 $ http :9101/quotes/random
 $ http :9101/quotes/random/FANTASY
 ```
+
+#### Compiling Spring Boot applications as native images
+There are two ways to compile your Spring Boot applications into native executables. The first option uses GraalVM explicitly and produces an OS-specific
+executable that runs directly on a machine. The second option relies on Cloud Native Buildpacks to containerize the native executable and run it on a container
+runtime like Docker.
+
+The first option requires the GraalVM runtime to be available on your machine. You can install it directly from the website (www.graalvm.org) or use a tool like
+sdkman. I'll be using the latest GraalVM 22.1 distribution available at the time of writing, based on OpenJDK 19.
+
+At the end of the installation procedure, sdkman will ask whether you want to make that distribution the default one. I recommend you say no, since we're going
+to be explicit whenever we need to use GraalVM instead of the standard OpenJDK.
+
+```shell
+$ sdk install java 22.3.1.r19-grl
+```
+
+Navigate to Quote Service project (quote-service), configure the shell to use GraalVM, and install the native-image GraalVM component as follows:
+
+```shell
+# Configures the current shell to use the specified Java runtime
+$ sdk use java 22.3.1.r19-grl
+# Uses the gu utility provided by GraalVM to install the native-image component
+$ gu install native-image
+```
+
+When you initialized the Quote Service project, the GraalVM Gradle/Maven official plugin was included automatically. That's the one providing the functionality
+to compile applications using the GraalVM Native Image mode.
+
+**NOTE** - The following Gradle tasks require that GraalVM is the current Java runtime. When using sdkman, you can do that by running sdk use java 22.2.r17-grl
+in the Terminal window where you want to use GraalVM.
+
+Take into account that the compilation step for GraalVM apps is more prolonged, taking several minutes depending on the computational resources available on
+your machine. That is one of the drawbacks of working with native images.
+
+From the same Terminal window where you switched to GraalVM as the current Java runtime, run the following command to compile the application to a native image:
+
+```shell
+$ ./gradlew nativeCompile
+```
+
+A standalone binary is the result of the command. Since it's a native executable, it will be different on macOS, Linux, and Windows. You can run it on your
+machine natively, without the need for a JVM. In the case of Gradle, the native executable is generated in the build/native/nativeCompile folder. Go ahead and
+run it.
+
+```shell
+$ build/native/nativeCompile/quote-service
+```
+
+The first thing to notice is the startup time, usually less than 100 ms with Spring Native. It’s an impressive improvement compared to the JVM option, which
+takes a few seconds. The best part of this is that we didn't have to write any code to make that happen! Let's send a request to ensure that the application is
+running correctly:
+
+```shell
+$ http :9101/quotes/random
+```
+
+You can also run the autotests as native executables to make them even more reliable, since they will use the actual runtime environment used in production.
+However, the compilation step still takes longer than when running on the JVM:
+
+```shell
+$ ./gradlew nativeTest
+```
+
+Finally, you can run a Spring Boot application as a native image directly from Gradle/Maven:
+
+```shell
+$ ./gradlew nativeRun
+```
