@@ -89,3 +89,16 @@ $ echo 'FANTASY' | http :9102/genreQuote ce-specversion:1.0 ce-type:quote ce-id:
 | ce-specversion:1.0 | The CloudEvents specification version |
 | ce-type:quote      | The type of event (domain-specific)   |
 | ce-id:394          | The ID of the event                   |
+
+#### Deploying serverless applications on the cloud
+Applications using Spring Cloud Function can be deployed in a few different ways. You can package them as JAR artifacts or container images and deploy them on
+servers or container runtimes like Docker or Kubernetes, respectively.
+When Spring Native is included, you also have the option to compile them to native images and run them on servers or container runtimes. Instant startup time
+and reduced memory consumption, you can also seamlessly deploy such applications on serverless platforms.
+
+Spring Cloud Function also supports deploying applications on vendor-specific FaaS platforms like AWS Lambda, Azure Functions, and Google Cloud Functions. Once
+you choose a platform, you can add the related adapter provided by the framework to accomplish the integration.
+
+When you use one of those adapters, you must choose which function to integrate with the platform. If there's only one function registered as a bean, that's
+the one used. If there are more (like in Quote Function), you need to use the **spring.cloud.function.definition** property to declare which function the FaaS
+platform will manage.
