@@ -20,3 +20,30 @@ to process the request very quickly. Standard JVM applications are not suitable 
 than a few seconds. That's why GraalVM native images became popular. Their instant startup time and reduced memory consumption make them perfect for the
 serverless model. The instant startup time is required for scaling. The reduced memory consumption helps reduce costs, which is one of the goals of serverless
 and cloud native in general.
+
+#### Building serverless applications with Spring Cloud Function
+Spring Cloud Function is very flexible. It integrates transparently with external messaging systems like RabbitMQ and Kafka, a handy feature for building
+serverless applications that are triggered by messages.
+
+The application should expose similar functionality to Quote Service:
+
+* Returning all the quotes can be expressed as a Supplier, since it takes no input.
+* Returning a random quote can also be expressed as a Supplier, since it takes no input.
+* Returning a random quote for a given genre can be expressed as a Function, since it has both input and output.
+* Logging a quote to standard output can be expressed as a Consumer, since it has input but no output.
+
+Spring Cloud Function will automatically expose all the registered functions as HTTP endpoints when the Spring web dependencies are on the classpath. Each
+endpoint uses the same name as the function. In general, suppliers can be invoked through GET requests and functions and consumers as POST requests.
+
+Run the Quote Function application (./gradlew bootRun) and test the two suppliers by sending GET requests:
+
+```shell
+$ http :9102/allQuotes
+$ http :9102/randomQuote
+```
+
+To get a random quote by genre, you need to provide a genre string in the body of a POST request:
+
+```shell
+$ echo 'FANTASY' | http :9102/genreQuote
+```
