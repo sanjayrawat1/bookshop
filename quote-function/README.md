@@ -47,3 +47,45 @@ To get a random quote by genre, you need to provide a genre string in the body o
 ```shell
 $ echo 'FANTASY' | http :9102/genreQuote
 ```
+
+When only one function is registered as a bean, Spring Cloud Function will automatically expose it through the root endpoint. In the case of multiple functions,
+you can choose the function through the **spring.cloud.function.definition** configuration property. For example, we could expose the allQuotes function through
+the root endpoint.
+
+Since the allQuotes function is a Supplier returning a Flux of Quote, you can leverage the streaming capabilities of Project Reactor and ask the application to
+return the quotes as they become available. That is done automatically when the **Accept:text/event-stream** header is used.
+e.g, curl -H 'Accept:text/event-stream' localhost:9102. When using the httpie utility, you'll also need to use the --stream argument to enable data streaming:
+
+```shell
+$ http :9102 Accept:text/event-stream --stream
+```
+
+When functions are exposed as HTTP endpoints, you can use the comma (,) character to compose functions on the fly. For example, you could combine the genreQuote
+function with logQuote as follows:
+
+```shell
+$ echo 'FANTASY' | http :9102/genreQuote,logQuote
+```
+
+Since logQuote is a consumer, the HTTP response has a 202 status with no body. If you check the application logs, you'll see that the random quote by genre has
+been printed out instead.
+
+Spring Cloud Function integrates with several communication channels. The framework also supports RSocket, which is a binary reactive protocol, and CloudEvents,
+a specification standardizing the format and distribution of events in cloud architectures (https://cloudevents.io).
+
+CloudEvents can be consumed over HTTP, messaging channels like AMPQ (RabbitMQ), and RSocket. They ensure a standard way of describing events, thus making them
+portable across a wide variety of technologies, including applications, messaging systems, build tools, and platforms.
+
+Since Quote Function is already configured to expose functions as HTTP endpoints, you can make it consume CloudEvents without changing any code. Send an HTTP
+request with the additional headers defined by the CloudEvents specification:
+
+```shell
+$ echo 'FANTASY' | http :9102/genreQuote ce-specversion:1.0 ce-type:quote ce-id:394
+```
+
+##### Explanation of above command parameters
+| command breakdown  | description                           |
+|--------------------|---------------------------------------|
+| ce-specversion:1.0 | The CloudEvents specification version |
+| ce-type:quote      | The type of event (domain-specific)   |
+| ce-id:394          | The ID of the event                   |
