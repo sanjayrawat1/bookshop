@@ -102,3 +102,113 @@ you choose a platform, you can add the related adapter provided by the framework
 When you use one of those adapters, you must choose which function to integrate with the platform. If there's only one function registered as a bean, that's
 the one used. If there are more (like in Quote Function), you need to use the **spring.cloud.function.definition** property to declare which function the FaaS
 platform will manage.
+
+##### Deploying applications with the Knative manifests
+Kubernetes is an extensible system. Besides using built-in objects like Deployments and Pods, we can define our own objects via Custom Resource Definitions
+(CRDs). That is the strategy used by many tools built on top of Kubernetes, including Knative.
+
+One of the benefits of using Knative is a better developer experience and the possibility to declare the desired state for our applications in a more
+straightforward and less verbose way. Rather than dealing with Deployments, Services, and Ingresses, we can work with a single type of resource: the Knative Service.
+
+Like any other Kubernetes resource, you can apply a Knative Service manifest to a cluster with kubectl apply -f <manifest-file> or through an automated flow
+like Argo CD. Using the Kubernetes CLI, run the following command to deploy the quote function from the Knative Service manifest:
+
+```shell
+$ kubectl apply -f knative/kservice.yml
+```
+
+To get the information about all the created Knative Services and their URL, run the following command:
+
+```shell
+$ kubectl get ksvc
+```
+
+To verify that the application is correctly deployed by sending HTTP request to the root endpoint, run following commands:
+
+```shell
+$ minikube tunnel --profile knative
+```
+
+```shell
+$  http http://quote-function.default.127.0.0.1.sslip.io
+```
+
+Knative provides an abstraction on top of Kubernetes. However, it still runs Deployments, ReplicaSets, Pods, Services, and Ingresses under the hood. You can
+configure Quote Function through ConfigMaps and Secrets.
+
+If you wait for 30 seconds and then check for the running Pods in your local Kubernetes cluster, you'll see there are none, because Knative scaled the
+application to zero due to inactivity:
+
+```shell
+$ kubectl get pod
+```
+`No resources found in default namespace.`
+
+Now try sending a new request to the application on http http://quote-function.default.127.0.0.1.sslip.io. Knative will immediately spin up a new Pod for Quote
+Function to answer the request. Run below command and this time you'll the output with pod information:
+
+```shell
+$ kubectl get pod
+```
+
+When you're done testing the application, remove it with:
+
+```shell
+$ kubectl delete -f knative/kservice.yml.
+```
+
+Finally, stop and delete the local cluster with the following command:
+
+```shell
+$ minikube stop --profile knative
+$ minikube delete --profile knative
+```
+
+The Knative Service resource represents an application service in its entirety. Thanks to this abstraction, we no longer need to deal directly with Deployments,
+Services, and Ingresses. Knative takes care of all that. It creates and manages them under the hood while freeing us from dealing with those lower-level
+resources provided by Kubernetes. By default, Knative can even expose an application outside the cluster without the need to configure an Ingress resource,
+providing you directly with a URL to call the application.
+
+Thanks to its features focused on developer experience and productivity, Knative can be used to run and manage any kind of workload on Kubernetes, limiting its
+scale-to-zero functionality only to the applications that provide support for it (for example, using Spring Native). We could easily run the entire Bookshop
+system on Knative. We could use the **autoscaling.knative.dev/minScale** annotation to mark the applications we don't want to be scaled to zero:
+
+```yaml
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: catalog-service
+  annotations:
+    # Ensures this Service is never scaled to zero
+    autoscaling.knative.dev/minScale: "1"
+```
+
+Knative offers such a great developer experience that it’s becoming the de facto abstraction when deploying workloads on Kubernetes, not only for serverless
+but also for more standard containerized applications.
+
+Another great feature offered by Knative is an intuitive and developer-friendly option for adopting deployment strategies like blue/green deployments, canary
+deployments, or A/B deployments, all via the same Knative Service resource. Implementing those strategies in plain Kubernetes would require a lot of manual
+work. Instead, Knative supports them out of the box.
+
+#### Summary
+* By replacing a standard OpenJDK distribution with GraalVM as the runtime environment for your Java applications, you can increase their performance and
+efficiency, thanks to a new optimized technology for performing JIT compilation (the GraalVM compiler).
+* What makes GraalVM so innovative and popular in the serverless context is the Native Image mode.
+* Rather than compiling your Java code into bytecode and relying on a JVM to interpret it and convert it to machine code at runtime, GraalVM offers a new
+technology (the Native Image builder) to compile Java applications directly into machine code, obtaining a native executable or native image.
+* Java applications compiled as native images have faster startup times, optimized memory consumption, and instant peak performance, unlike the JVM options.
+* The main goal of Spring Native is to make it possible to compile any Spring application into a native executable using GraalVM without any code changes.
+* Spring Native provides an AOT infrastructure (invoked from a dedicated Gradle/ Maven plugin) for contributing all the required configurations for GraalVM to AOT-compile Spring classes.
+* There are two ways to compile your Spring Boot applications into native executables. The first option produces an OS-specific executable and runs the
+application directly on a machine. The second option relies on Buildpacks to containerize the native executable and run it on a container runtime like Docker.
+* Serverless is a further abstraction layer on top of virtual machines and containers, which moves even more responsibility from product teams to the platform.
+* Following the serverless computing model, developers focus on implementing the business logic for their applications.
+* Serverless applications are triggered by an incoming request or a specific event. We call such applications request-driven or event-driven.
+* Applications using Spring Cloud Function can be deployed in a few different ways.
+* When Spring Native is included, you can also compile applications to native images and run them on servers or container runtimes. Thanks to instant startup
+time and reduced memory consumption, you can seamlessly deploy such applications on Knative.
+* Knative is a Kubernetes-based platform to deploy and manage modern serverless workloads (https://knative.dev). You can use it to deploy standard containerized
+workloads and event-driven applications.
+* The Knative project offers a superior user experience to developers and higher abstractions that make it simpler to deploy applications on Kubernetes.
+* Knative offers such a great developer experience that it's becoming the de facto abstraction when deploying workloads on Kubernetes, not only for serverless
+but also for more standard containerized applications.
