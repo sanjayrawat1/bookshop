@@ -822,3 +822,101 @@ Controller, will reply with a 403 response.
   continuously reconciled.
 * Argo CD is a software agent running in a cluster that automatically pulls the desired state from a source repository and applies it to the cluster whenever
   the two states diverge. That's how we implemented continuous deployment.
+
+
+#### Deploying serverless applications with Knative
+Knative is a Kubernetes-based platform to deploy and manage modern serverless workloads (https://knative.dev). It's a CNCF project that you can use to deploy
+standard containerized workloads and event-driven applications. The project offers a superior user experience to developers and higher abstractions that make
+it simpler to deploy applications on Kubernetes.
+
+You can decide to run your own Knative platform on top of a Kubernetes cluster or choose a managed service offered by a cloud provider, such as VMware Tanzu
+Application Platform, Google Cloud Run, or Red Hat OpenShift Serverless. Since they are all based on open source software and standards, you could migrate
+from Google Cloud Run to VMware Tanzu Application Platform without changing your application code and with minimal changes to your deployment pipeline.
+
+The Knative project consists of two main components: Serving and Eventing.
+* **Knative Serving** is for running serverless workloads on Kubernetes. It takes care of autoscaling, networking, revisions, and deployment strategies while
+letting engineers focus on the application business logic.
+* **Knative Eventing** provides management for integrating applications with event sources and sinks based on the CloudEvents specification, abstracting
+backends like RabbitMQ or Kafka.
+
+Our focus will be on using Knative Serving to run serverless workloads while avoiding vendor lock-in.
+
+**NOTE** Originally, Knative consisted of a third component called **Build** that subsequently became a standalone product, renamed Tekton (https://tekton.dev)
+and donated to the Continuous Delivery Foundation (https://cd.foundation). Tekton is a Kubernetes-native framework for building deployment pipelines that
+support continuous delivery. For example, you could use Tekton instead of GitHub Actions.
+
+##### Setting up a local Knative platform
+Since Knative runs on top of Kubernetes, we first need a cluster. Create one with minikube by running following command:
+
+```shell
+$ minikube start --profile knative
+```
+
+Next, install Knative. Navigate to the kubernetes/platform/development/knative folder, and run the following command to install Knative on local Kubernetes
+cluster:
+
+```shell
+$ ./install-knative.sh
+```
+
+The Knative project provides a convenient CLI tool that you can use to interact with Knative resources in a Kubernetes cluster. On macOS and Linux, you can
+install it with Homebrew as follows
+
+```shell
+$ brew install kn
+```
+
+##### Deploying applications with the Knative CLI
+Knative provides a few different options for deploying applications. In production, we'll want to stick to a declarative configuration as we did for standard
+Kubernetes deployments and rely on a GitOps flow to reconcile the desired state (in a Git repository) and actual state (in the Kubernetes cluster).
+
+When experimenting or working locally, we can also take advantage of the Knative CLI to deploy applications in an imperative way.
+
+Run the following command to deploy Quote Function. The container image is the one published by the commit stage workflow:
+
+```shell
+$ kn service create quote-function \
+    --image ghcr.io/sanjayrawat1/quote-function \
+    --port 9102
+```
+
+**The Knative command for creating a Service from a container image. Knative will take care of creating all the resources necessary to deploy the applications
+on Kubernetes.**
+
+##### Explanation of above command
+| command breakdown                           | description                               |
+|---------------------------------------------|-------------------------------------------|
+| kn service create                           | Create a Knative service.                 |
+| quote-function                              | The name of the Knative service.          |
+| --image ghcr.io/sanjayrawat1/quote-function | The container image to run.               |
+| --port 9102                                 | The port that the application listens to. |
+
+The command will initialize a new **quote-function** service in the default namespace on Kubernetes. It will return the public URL through which the application
+is exposed in the output message of above command.
+
+To test it out! First we need to open a tunnel to the cluster with minikube, by running following command:
+
+```shell
+$ minikube tunnel --profile knative
+```
+
+Now, call the application at the root endpoint to fetch the complete list of quotes. The URL to call is the same one returned by the previous command:
+(http://quote-function.default.127.0.0.1.sslip.io), which is in the format <service-name>.<namespace>.<domain>:
+
+```shell
+$ http http://quote-function.default.127.0.0.1.sslip.io
+```
+
+Knative takes care of scaling the application without any further configuration. For each request, it determines whether more instances are required. When an
+instance stays idle for a specific time period (30 seconds, by default), Knative will shut it down. If no request is received for more than 30 seconds, Knative
+will scale the application to zero, meaning there will be no instances of Quote Function running. When a new request is eventually received, Knative starts a
+new instance and uses it to handle the request.
+
+Using an open source platform like Knative has the advantage of letting you migrate your applications to another cloud provider without any code changes. You
+can even use the same deployment pipeline as-is, or with minor modifications.
+
+To delete the Quote Function instance you created previously, run the following command:
+
+```shell
+$ kn service delete quote-function
+```
